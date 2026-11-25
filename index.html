@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>화요책방</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f5a43'/%3E%3Cpath d='M16 18h14a4 4 0 0 1 4 4v26a3 3 0 0 0-3-3H16zM48 18H38a4 4 0 0 0-4 4v26a3 3 0 0 1 3-3h11z' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#33507c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="화요책방">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600;700&family=Jua&family=Gowun+Dodum&family=Gaegu:wght@400;700&display=swap">
 <style>
 :root{
@@ -259,6 +265,15 @@ button.chapter:disabled{opacity:1}
 .card .chapters{margin:2px 0}
 footer{flex-wrap:wrap}
 footer .dept{font-weight:700;flex-basis:100%;text-align:center;order:3}
+
+.share{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.share .url{font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;background:var(--accent-soft);padding:5px 10px;border-radius:999px;word-break:break-all}
+.share .url::before{content:"🔗 "}
+button.mini{font-size:13px;padding:5px 12px;border-radius:999px}
+button.mini.install{display:inline-flex;align-items:center;gap:5px;background:var(--accent);border-color:var(--accent);color:#fff}
+.howto{margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.howto .h{display:block;margin-bottom:4px}
+.howto ol{margin:4px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:3px}
 </style>
 </head>
 <body>
@@ -266,6 +281,12 @@ footer .dept{font-weight:700;flex-basis:100%;text-align:center;order:3}
   <header>
     <h1>화요책방</h1>
     <p class="sub" id="sub">화요일 아침 회의에서 소개한 책들입니다.</p>
+    <div class="share">
+      <a class="url" id="siteUrl" href="https://eunbibag15-cpu.github.io/reading-notes/">eunbibag15-cpu.github.io/reading-notes</a>
+      <button type="button" class="mini" id="copyUrl">주소 복사</button>
+      <button type="button" class="mini install" id="installBtn"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>바로가기 설치</button>
+    </div>
+    <div class="howto" id="howto" hidden></div>
   </header>
 
   <section class="gate" id="gate">
@@ -327,6 +348,33 @@ const LOOK = ['a','b','c','a1','a2','a3'].includes(params.get('look')) ? params.
 if (LOOK) document.body.classList.add('look-' + LOOK);
 if (['a1','a2','a3'].includes(LOOK)) document.body.classList.add('ban');
 const DEMO = params.get('demo') === '1';
+
+// ---- 주소 복사 · 바로가기 설치(휴대폰 홈 화면 / 컴퓨터 앱) ----
+const SITE_URL = 'https://eunbibag15-cpu.github.io/reading-notes/';
+$('copyUrl').onclick = async () => {
+  try { await navigator.clipboard.writeText(SITE_URL); } catch { const t = document.createElement('textarea'); t.value = SITE_URL; document.body.append(t); t.select(); try { document.execCommand('copy'); } catch {} t.remove(); }
+  $('copyUrl').textContent = '복사했어요 ✓'; setTimeout(() => { $('copyUrl').textContent = '주소 복사'; }, 1800);
+};
+let installEvt = null;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+if (standalone()) $('installBtn').hidden = true;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
+addEventListener('appinstalled', () => { $('installBtn').hidden = true; $('howto').hidden = true; });
+$('installBtn').onclick = async () => {
+  if (installEvt) { installEvt.prompt(); const r = await installEvt.userChoice; installEvt = null; if (r.outcome === 'accepted') $('installBtn').hidden = true; return; }
+  // 브라우저가 바로 설치 창을 못 띄우면, 기기에 맞는 방법을 알려 줌
+  const ua = navigator.userAgent, box = $('howto');
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(ua), samsung = /SamsungBrowser/.test(ua), kakao = /KAKAOTALK/i.test(ua);
+  let steps;
+  if (kakao) steps = ['카카오톡 안에서는 설치가 안 돼요.', '오른쪽 아래(또는 위) <b>⋮</b> 메뉴 → <b>다른 브라우저로 열기</b>를 누른 뒤, 다시 「바로가기 설치」를 눌러 주세요.'];
+  else if (ios) steps = ['<b>사파리</b>에서 열어 주세요(다른 앱 안이면 사파리로 열기).', '아래쪽 <b>공유 버튼</b>(네모에 위쪽 화살표)을 누르세요.', '<b>홈 화면에 추가</b> → 오른쪽 위 <b>추가</b>를 누르면 끝!'];
+  else if (samsung) steps = ['아래쪽 <b>≡</b> 메뉴를 누르세요.', '<b>현재 페이지 추가</b> → <b>홈 화면</b>을 고르면 끝!'];
+  else if (android) steps = ['오른쪽 위 <b>⋮</b> 메뉴를 누르세요.', '<b>홈 화면에 추가</b>(또는 <b>앱 설치</b>) → <b>설치/추가</b>를 누르면 끝!'];
+  else steps = ['<b>크롬·엣지</b>: 주소창 오른쪽 끝의 <b>설치 아이콘</b>(모니터에 화살표)을 누르거나,', '오른쪽 위 <b>⋮ / …</b> 메뉴 → <b>앱</b> → <b>이 사이트를 앱으로 설치</b>(또는 「화요책방 설치」)를 누르세요.', '설치하면 바탕화면·시작 메뉴에 화요책방 아이콘이 생겨요.'];
+  box.innerHTML = '<b class="h">바로가기 만드는 방법</b><ol>' + steps.map(s => '<li>' + s + '</li>').join('') + '</ol><p class="msg">처음 열 때 팀 비밀번호를 한 번 더 물어볼 수 있어요.</p><button type="button" class="mini" id="howtoClose">닫기</button>';
+  box.hidden = false; $('howtoClose').onclick = () => { box.hidden = true; };
+};
 
 const WD = ['일','월','화','수','목','금','토'];
 const fmt = s => { const d = new Date(s + 'T00:00:00'); return isNaN(d) ? s : `${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]})`; };
