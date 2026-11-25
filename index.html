@@ -241,6 +241,22 @@ body.ban .list li .cover > *{display:none}
 .chapter::before{content:"챕터 ";font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:1px}
 .card .chapter{margin-top:0;font-size:14px}
 .add > label small{font-weight:400}
+
+.parts{display:flex;flex-direction:column;gap:8px}
+.parts-head{font-size:13px;color:var(--muted);font-weight:500}
+.parts-head small{font-weight:400}
+#partRows{display:flex;flex-direction:column;gap:8px}
+.prow{display:grid;grid-template-columns:1.2fr 1fr auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.prow input{width:100%;min-width:0}
+.prow small{grid-column:1/-1;color:var(--muted);font-size:12px}
+.parts > .link{align-self:flex-start}
+@media (max-width:560px){.prow{grid-template-columns:1fr auto}.prow input[type=file]{grid-column:1/-1;grid-row:2}}
+.chapters{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+button.chapter{display:block;border:0;background:none;padding:0;border-radius:0;text-align:left;font-weight:400;cursor:default;color:var(--accent)}
+button.chapter.has{cursor:pointer}
+button.chapter.has:hover{text-decoration:underline}
+button.chapter:disabled{opacity:1}
+.card .chapters{margin:2px 0}
 </style>
 </head>
 <body>
@@ -274,8 +290,11 @@ body.ban .list li .cover > *{display:none}
         <label>책 제목<input id="aTitle" required placeholder="책 제목"></label>
         <label>저자<input id="aAuthor" placeholder="저자"></label>
       </div>
-      <label>공유한 챕터 · 소제목 <small>(스캔해서 나눠 주신 부분의 제목)</small><input id="aChapter" placeholder="예: 3장 왜 우리는 가난했나"></label>
-      <label><span>스캔본 PDF<small id="pdfHint"></small></span><input id="aPdf" type="file" accept="application/pdf,.pdf"></label>
+      <div class="parts">
+        <div class="parts-head">공유한 챕터와 스캔본 <small>— 책 한 권에 챕터를 여러 개 넣을 수 있어요. 파일 이름이 「챕터 제목_저자.pdf」면 챕터·저자가 자동으로 채워져요. PDF를 여러 개 한꺼번에 골라도 돼요.</small></div>
+        <div id="partRows"></div>
+        <button type="button" class="link" id="addPart">+ 챕터 하나 더</button>
+      </div>
       <label><span>표지 사진<small> (jpg·png — 교보문고·알라딘 책 페이지에서 표지 이미지를 저장해 넣으세요)</small></span><input id="aCover" type="file" accept="image/*"></label>
       <label class="chk"><input id="aFromPdf" type="checkbox"> 표지 사진을 안 넣으면 스캔본 첫 장을 표지로 쓰기</label>
       <div id="tokBox" class="tok" hidden>
@@ -340,9 +359,34 @@ function hl(text, q) {
   while ((k = lo.indexOf(q, i)) >= 0) { span.append(text.slice(i, k)); const m = document.createElement('mark'); m.textContent = text.slice(k, k + q.length); span.append(m); i = k + q.length; }
   span.append(text.slice(i)); return span;
 }
+// 책 한 권 = 챕터 여러 개(parts: [{file, name, chapter}]). 예전 책(file·name·chapter 한 개)도 그대로 읽음
+function partsOf(b) {
+  if (Array.isArray(b.parts)) return b.parts;
+  return (b.file || b.chapter) ? [{ file: b.file, name: b.name, chapter: b.chapter }] : [];
+}
+function chapterOf(p) {
+  if (p.chapter) return p.chapter;
+  const n = (p.name || '').replace(/\.pdf$/i, ''); const k = n.lastIndexOf('_');
+  return k > 0 ? n.slice(0, k).trim() : '';
+}
+const firstPart = b => partsOf(b).find(p => p.file);
+const searchText = b => `${b.title} ${b.author || ''} ${partsOf(b).map(chapterOf).join(' ')}`.toLowerCase();
+// 챕터 줄: 스캔본이 있으면 누르면 그 챕터 스캔본이 열림
+function chapterLines(b, q) {
+  const box = document.createElement('div'); box.className = 'chapters';
+  for (const p of partsOf(b)) {
+    const raw = chapterOf(p), name = raw && raw !== (b.title || '').trim() ? raw : '';  // 제목과 같으면 챕터로 안 보여 줌
+    if (!name && (!p.file || partsOf(b).length < 2)) continue;
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'chapter' + (p.file ? ' has' : '');
+    c.append(hl(name || '스캔본', q));
+    if (p.file) { c.onclick = () => openScan(b, p); c.title = '이 챕터 스캔본 보기'; } else c.disabled = true;
+    box.append(c);
+  }
+  return box;
+}
 function render() {
   const q = $('q').value.trim().toLowerCase(), yr = $('yr').value;
-  const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || `${b.title} ${b.author || ''} ${chapterOf(b)}`.toLowerCase().includes(q)));
+  const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || searchText(b).includes(q)));
   const out = $('out'); out.replaceChildren();
   if (!shown.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = books.length ? '찾는 책이 없어요.' : '아직 등록된 책이 없어요. 「+ 책 추가」로 첫 책을 올려 보세요.'; out.append(e); return; }
   // 검색 중이 아니면 가장 최근 회의 날짜의 책을 「이번 주 소개한 책」으로 따로 보여 줌
@@ -351,7 +395,7 @@ function render() {
     const latest = books[0].date;
     const now = shown.filter(b => b.date === latest);
     rest = shown.filter(b => b.date !== latest);
-    const h = document.createElement('h2'); h.className = 'sec'; h.textContent = `이번 주 소개한 책 · ${fmt(latest)}`; out.append(h);
+    const hh = document.createElement('h2'); hh.className = 'sec'; hh.textContent = `이번 주 소개한 책 · ${fmt(latest)}`; out.append(hh);
     const box = document.createElement('div'); box.className = 'now';
     for (const b of now) box.append(nowCard(b));
     out.append(box);
@@ -360,17 +404,17 @@ function render() {
   let cur = null, ul = null;
   for (const b of rest) {
     const y = b.date.slice(0, 4);
-    if (y !== cur) { cur = y; const h = document.createElement('div'); h.className = 'year'; h.textContent = `${y}년`; out.append(h); ul = document.createElement('ul'); ul.className = 'list'; out.append(ul); }
+    if (y !== cur) { cur = y; const yh = document.createElement('div'); yh.className = 'year'; yh.textContent = `${y}년`; out.append(yh); ul = document.createElement('ul'); ul.className = 'list'; out.append(ul); }
     const li = document.createElement('li');
     const d = document.createElement('span'); d.className = 'date'; d.textContent = fmt(b.date);
     const body = document.createElement('div');
-    const t = document.createElement('button'); t.type = 'button'; t.className = 'title' + (b.file ? ' has' : ''); t.append(hl(b.title, q));
-    if (b.file) { t.onclick = () => openScan(b); t.setAttribute('aria-label', `${b.title} 스캔본 보기`); } else t.disabled = true;
+    const fp = firstPart(b), n = partsOf(b).filter(p => p.file).length;
+    const t = document.createElement('button'); t.type = 'button'; t.className = 'title' + (fp ? ' has' : ''); t.append(hl(b.title, q));
+    if (fp) { t.onclick = () => openScan(b, fp); t.setAttribute('aria-label', `${b.title} 스캔본 보기`); } else t.disabled = true;
     body.append(t);
     if (b.author) { const a = document.createElement('span'); a.className = 'author'; a.append(hl(b.author, q)); body.append(a); }
-    if (b.file) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = '스캔본'; body.append(tg); }
-    body.append(editBtn(b), delCtl(b));
-    if (chapterOf(b)) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.append(hl(chapterOf(b), q)); body.append(ch); }
+    if (n) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = n > 1 ? `스캔본 ${n}개` : '스캔본'; body.append(tg); }
+    body.append(editBtn(b), delCtl(b), chapterLines(b, q));
     li.append(cover(b), d, body); ul.append(li);
   }
 }
@@ -379,13 +423,15 @@ function nowCard(b) {
   const info = document.createElement('div'); info.className = 'info';
   const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = '이번 주 · ' + fmt(b.date); info.append(bd);
   c.append(cover(b), info);
-  const t = document.createElement('button'); t.type = 'button'; t.className = 'title big' + (b.file ? ' has' : ''); t.textContent = b.title;
-  if (b.file) t.onclick = () => openScan(b); else t.disabled = true;
+  const fp = firstPart(b), n = partsOf(b).filter(p => p.file).length;
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'title big' + (fp ? ' has' : ''); t.textContent = b.title;
+  if (fp) t.onclick = () => openScan(b, fp); else t.disabled = true;
   info.append(t);
-  if (chapterOf(b)) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.textContent = chapterOf(b); info.append(ch); }
   if (b.author) { const a = document.createElement('div'); a.className = 'author'; a.style.margin = '0'; a.textContent = b.author; info.append(a); }
+  info.append(chapterLines(b, ''));
   const row = document.createElement('div'); row.className = 'row';
-  if (b.file) { const v = document.createElement('button'); v.type = 'button'; v.className = 'primary'; v.textContent = '스캔본 보기'; v.onclick = () => openScan(b); row.append(v); }
+  if (n === 1) { const v = document.createElement('button'); v.type = 'button'; v.className = 'primary'; v.textContent = '스캔본 보기'; v.onclick = () => openScan(b, fp); row.append(v); }
+  else if (n > 1) { const hint = document.createElement('span'); hint.className = 'msg'; hint.textContent = `챕터 ${n}개 · 챕터를 누르면 스캔본이 열려요`; row.append(hint); }
   row.append(editBtn(b), delCtl(b)); info.append(row);
   return c;
 }
@@ -425,11 +471,6 @@ async function pdfFirstPage(bytes) {
 }
 // 책 표지(제목으로 만든 색 표지). 디자인에 따라 보이거나 숨김
 const COVERS = ['#3b5a86', '#4f7a64', '#a0602e', '#7a4f86', '#2f6f73', '#8a5a44', '#5b6b8c'];
-function chapterOf(b) {
-  if (b.chapter) return b.chapter;
-  const n = (b.name || '').replace(/.pdf$/i, ''); const k = n.lastIndexOf('_');
-  return k > 0 ? n.slice(0, k).trim() : '';
-}
 function cover(b) {
   const d = document.createElement('div'); d.className = 'cover';
   let n = 0; for (const ch of b.id + b.title) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
@@ -439,8 +480,8 @@ function cover(b) {
   d.append(t, s);
   if (b.coverUrl) setImg(d, b.coverUrl);
   else if (b.cover && key) loadCover(b.cover).then(u => setImg(d, u)).catch(() => {});
-  else if (b.file && key) autoCover(b.file).then(u => setImg(d, u)).catch(() => {});
-  if (b.file) { d.classList.add('has'); d.onclick = () => openScan(b); }
+  else if (firstPart(b) && key) autoCover(firstPart(b).file).then(u => setImg(d, u)).catch(() => {});
+  if (firstPart(b)) { d.classList.add('has'); d.onclick = () => openScan(b, firstPart(b)); }
   return d;
 }
 // 수정: 추가 양식에 지금 정보를 채워 열어 줌(날짜·제목·저자·스캔본 교체)
@@ -477,9 +518,10 @@ async function removeBook(b) {
   const list = JSON.parse(new TextDecoder().decode(await open(key, raw))).filter(x => x.id !== b.id);
   const r = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `책 삭제: ${b.title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
   if (!r.ok) throw new Error('save');
-  if (b.file) {
-    const f = await gh(b.file);
-    if (f.ok) { const { sha } = await f.json(); await gh(b.file, { method: 'DELETE', body: JSON.stringify({ message: `스캔본 삭제: ${b.title}`, sha }) }); }
+  for (const p of partsOf(b)) {
+    if (!p.file) continue;
+    const f2 = await gh(p.file);
+    if (f2.ok) { const { sha } = await f2.json(); await gh(p.file, { method: 'DELETE', body: JSON.stringify({ message: `스캔본 삭제: ${b.title}`, sha }) }); }
   }
   if (b.cover) { const c2 = await gh(b.cover); if (c2.ok) { const { sha } = await c2.json(); await gh(b.cover, { method: 'DELETE', body: JSON.stringify({ message: `표지 삭제: ${b.title}`, sha }) }); } }
   books = list.sort((a, c) => c.date.localeCompare(a.date)); render();
@@ -491,15 +533,15 @@ const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
 const loadScript = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.append(s); });
 let pdfReady = null;
 const loadPdfJs = () => (pdfReady ||= loadScript(PDFJS + 'pdf.min.js').then(() => loadScript(PDFJS + 'pdf.worker.min.js')));
-let curPdf = null, curBook = null, renderToken = 0;
-async function openScan(b) {
-  if (DEMO) return;
-  curBook = b; const tok = ++renderToken;
-  $('vTitle').textContent = b.title; $('viewer').hidden = false; document.body.style.overflow = 'hidden';
+let curPdf = null, curBook = null, curPart = null, renderToken = 0;
+async function openScan(b, p = firstPart(b)) {
+  if (DEMO || !p) return;
+  curBook = b; curPart = p; const tok = ++renderToken;
+  $('vTitle').textContent = chapterOf(p) ? `${b.title} · ${chapterOf(p)}` : b.title; $('viewer').hidden = false; document.body.style.overflow = 'hidden';
   const box = $('pages'); box.replaceChildren(); const m = document.createElement('p'); m.className = 'msg'; m.textContent = '스캔본을 여는 중…'; box.append(m);
   $('vSave').disabled = true;
   try {
-    const [bytes] = await Promise.all([getBin(b.file).then(x => open(key, x)), loadPdfJs()]);
+    const [bytes] = await Promise.all([getBin(p.file).then(x => open(key, x)), loadPdfJs()]);
     if (tok !== renderToken) return;
     curPdf = bytes; $('vSave').disabled = false;
     const pdf = await window.pdfjsLib.getDocument({ data: bytes.slice() }).promise;
@@ -525,7 +567,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('viewer
 $('vSave').onclick = () => {
   if (!curPdf) return;
   const url = URL.createObjectURL(new Blob([curPdf], { type: 'application/pdf' }));
-  const a = document.createElement('a'); a.href = url; a.download = curBook.name || `${curBook.title}.pdf`; document.body.append(a); a.click(); a.remove();
+  const a = document.createElement('a'); a.href = url; a.download = (curPart && curPart.name) || `${curBook.title}.pdf`; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 };
 
@@ -565,43 +607,73 @@ async function gh(path, opts = {}) {
 }
 const lastTuesday = () => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() - 2 + 7) % 7)); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 let editing = null;  // 수정 중인 책(없으면 새 책 추가)
+let removedParts = [];  // 수정 중에 「빼기」한 예전 챕터(저장할 때 스캔본도 지움)
+function fileList(files) { const dt = new DataTransfer(); for (const x of files) dt.items.add(x); return dt.files; }
+// 챕터 한 줄: 챕터 제목 + 스캔본 PDF(+ 지금 파일) + 빼기
+function addPartRow(p = null, file = null) {
+  const r = document.createElement('div'); r.className = 'prow'; r._part = p;
+  const ch = document.createElement('input'); ch.className = 'pch'; ch.placeholder = '챕터 제목 (예: 3장 왜 우리는 가난했나)'; ch.value = p ? chapterOf(p) : '';
+  const fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'application/pdf,.pdf'; fi.multiple = true;
+  const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'link'; rm.textContent = '빼기';
+  rm.onclick = () => { if (r._part) removedParts.push(r._part); r.remove(); };
+  const note = document.createElement('small');
+  note.textContent = p && p.file ? `지금 스캔본: ${p.name || '있음'} — 바꿀 때만 새 파일을 고르세요` : 'PDF를 고르세요';
+  fi.onchange = () => {
+    const fs2 = [...fi.files]; if (!fs2.length) return;
+    if (fs2.length > 1) { fi.files = fileList([fs2[0]]); for (const extra of fs2.slice(1)) addPartRow(null, extra); }
+    fillFromName(r, fs2[0]);
+  };
+  r.append(ch, fi, rm, note); $('partRows').append(r);
+  if (file) { fi.files = fileList([file]); fillFromName(r, file); }
+  return r;
+}
+// 파일 이름 「챕터 제목_저자.pdf」 → 챕터·저자 자동 채움(비어 있을 때만)
+function fillFromName(r, f) {
+  const base = f.name.replace(/\.pdf$/i, '').trim(); const k = base.lastIndexOf('_');
+  const ch = (k > 0 ? base.slice(0, k) : base).trim(), au = k > 0 ? base.slice(k + 1).trim() : '';
+  const pch = r.querySelector('.pch'); if (!pch.value.trim() && ch) pch.value = ch;
+  if (!$('aAuthor').value.trim() && au) $('aAuthor').value = au;
+  r.querySelector('small').textContent = `새 스캔본: ${f.name}`;
+}
+$('addPart').onclick = () => addPartRow().querySelector('.pch').focus();
 function showAdd(on, b = null) {
   editing = on ? b : null;
   $('addForm').hidden = !on; $('addBtn').hidden = on;
   if (!on) return;
   $('addHead').textContent = b ? `책 정보 수정 · ${b.title}` : '이번 주 책 추가';
-  $('pdfHint').textContent = b ? (b.file ? ' (바꿀 때만 새 파일을 고르세요. 안 고르면 지금 스캔본 그대로예요)' : ' (스캔본을 새로 넣을 때만 고르세요)') : '';
   $('addSave').textContent = b ? '저장' : '올리기';
-  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aChapter').value = b ? chapterOf(b) : ''; $('aPdf').value = ''; $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
+  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : '';
+  $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
+  removedParts = []; $('partRows').replaceChildren();
+  const ps = b ? partsOf(b) : [];
+  if (ps.length) ps.forEach(p => addPartRow(p)); else addPartRow();
   $('addForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('tokBox').hidden = DEMO || !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
 }
 $('addBtn').onclick = () => showAdd(true);
-// 스캔본 파일 이름이 「챕터 제목_저자.pdf」면 챕터·저자 칸을 자동으로 채움(비어 있을 때만)
-$('aPdf').onchange = () => {
-  const f = $('aPdf').files[0]; if (!f) return;
-  const base = f.name.replace(/.pdf$/i, '').trim(); const k = base.lastIndexOf('_');
-  const ch = (k > 0 ? base.slice(0, k) : base).trim(), au = k > 0 ? base.slice(k + 1).trim() : '';
-  if (!$('aChapter').value.trim() && ch) $('aChapter').value = ch;
-  if (!$('aAuthor').value.trim() && au) $('aAuthor').value = au;
-};
 $('addCancel').onclick = () => showAdd(false);
 $('tokReset').onclick = () => { sharedTok = ''; try { localStorage.removeItem(TOK); } catch {} $('tokBox').hidden = false; $('tokReset').hidden = true; $('aTok').focus(); };
+const rand6 = () => [...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('');
+const forgetAuto = path => { autoCache.delete(path); try { localStorage.removeItem('rn-cover:' + path); } catch {} };
 $('addForm').onsubmit = async e => {
   e.preventDefault();
   const msg = $('addMsg'); msg.className = 'msg';
-  const title = $('aTitle').value.trim(), date = $('aDate').value, author = $('aAuthor').value.trim(), chapter = $('aChapter').value.trim(), pdf = $('aPdf').files[0];
+  const title = $('aTitle').value.trim(), date = $('aDate').value, author = $('aAuthor').value.trim();
+  const rows = [...$('partRows').children].map(r => ({ part: r._part, chapter: r.querySelector('.pch').value.trim(), file: r.querySelector('input[type=file]').files[0] }))
+    .filter(x => x.part || x.file || x.chapter);
   if (!title || !date) { msg.className = 'msg err'; msg.textContent = '날짜와 책 제목을 적어 주세요.'; return; }
+  const firstNewPdf = (rows.find(x => x.file) || {}).file;
   if (DEMO) {
     const cf = $('aCover').files[0]; let url = null;
     try {
       if (cf) url = URL.createObjectURL(await imgToJpeg(cf));
-      else if ($('aFromPdf').checked && pdf) url = URL.createObjectURL(await imgToJpeg(await pdfFirstPage(new Uint8Array(await pdf.arrayBuffer()))));
+      else if ($('aFromPdf').checked && firstNewPdf) url = URL.createObjectURL(await imgToJpeg(await pdfFirstPage(new Uint8Array(await firstNewPdf.arrayBuffer()))));
     } catch { msg.className = 'msg err'; msg.textContent = '표지 이미지를 읽지 못했어요.'; return; }
-    if (editing) { const e2 = books.find(x => x.id === editing.id); Object.assign(e2, { date, title, author, chapter }); if (url) e2.coverUrl = url; }
-    else books.push({ id: 'd' + Date.now(), date, title, author, chapter, file: pdf ? 'demo' : undefined, coverUrl: url });
+    const parts = rows.map(x => ({ file: (x.file || (x.part && x.part.file)) ? 'demo' : undefined, name: x.file ? x.file.name : x.part && x.part.name, chapter: x.chapter }));
+    if (editing) { const e2 = books.find(x => x.id === editing.id); Object.assign(e2, { date, title, author, parts }); delete e2.file; delete e2.chapter; if (url) e2.coverUrl = url; }
+    else books.push({ id: 'd' + Date.now(), date, title, author, parts, coverUrl: url });
     books.sort((a, c) => c.date.localeCompare(a.date)); render(); showAdd(false);
-    $('sub').textContent = '미리보기라서 실제로 저장되지는 않아요. 표지가 어떻게 보이는지만 확인해 보세요.'; return;
+    $('sub').textContent = '미리보기라서 실제로 저장되지는 않아요. 어떻게 보이는지만 확인해 보세요.'; return;
   }
   if (!getTok()) {
     const t = $('aTok').value.trim();
@@ -615,31 +687,44 @@ $('addForm').onsubmit = async e => {
     const raw = await blobBytes(cur.sha);
     const list = JSON.parse(new TextDecoder().decode(await open(key, raw)));
     const isEdit = !!editing;
-    let entry;
+    let entry, merged = false;
     if (isEdit) {
       entry = list.find(x => x.id === editing.id);
       if (!entry) throw new Error('다른 팀원이 이 책을 지운 것 같아요. 새로고침해 주세요.');
-      Object.assign(entry, { date, title, author, chapter });
+      Object.assign(entry, { date, title, author });
     } else {
-      const id = `${date}-${[...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('')}`;
-      entry = { id, date, title, author, chapter };
+      // 같은 날 같은 책이 이미 있으면 새 책을 만들지 않고 그 책에 챕터를 더함
+      const same = list.find(x => x.date === date && (x.title || '').trim() === title);
+      if (same) { entry = same; merged = true; if (author) entry.author = author; }
+      else entry = { id: `${date}-${rand6()}`, date, title, author };
     }
-    if (pdf) {
-      msg.textContent = '스캔본을 암호화해서 올리는 중… (몇 초 걸려요)';
-      const sealed = await seal(new Uint8Array(await pdf.arrayBuffer()));
-      const path = entry.file || `data/${entry.id}.bin`;
-      let sha;  // 이미 있는 스캔본을 바꿀 때는 sha가 필요함
-      if (entry.file) { const old = await gh(path); if (old.ok) sha = (await old.json()).sha; }
-      const r = await gh(path, { method: 'PUT', body: JSON.stringify({ message: `스캔본 ${sha ? '교체' : '추가'}: ${title}`, content: toB64(sealed), ...(sha ? { sha } : {}) }) });
-      if (!r.ok) throw new Error('upload');
-      entry.file = path; entry.name = pdf.name;
+    const oldFiles = partsOf(entry).map(p => p.file).filter(Boolean);
+    // 챕터마다 새 스캔본이 있으면 암호화해서 올림(바꾸는 거면 같은 자리에 덮어씀)
+    const newParts = merged ? partsOf(entry).map(p => ({ ...p })) : []; const toUpload = rows.filter(x => x.file).length; let done = 0;
+    for (const x of rows) {
+      const p = x.part ? { file: x.part.file, name: x.part.name } : {};
+      if (x.file) {
+        done++; msg.textContent = `스캔본을 암호화해서 올리는 중… (${done}/${toUpload})`;
+        const sealed = await seal(new Uint8Array(await x.file.arrayBuffer()));
+        const path = p.file || `data/${entry.id}-${rand6()}.bin`;
+        let sha; if (p.file) { const old = await gh(path); if (old.ok) sha = (await old.json()).sha; }
+        const r = await gh(path, { method: 'PUT', body: JSON.stringify({ message: `스캔본 ${sha ? '교체' : '추가'}: ${title}`, content: toB64(sealed), ...(sha ? { sha } : {}) }) });
+        if (!r.ok) throw new Error('upload');
+        p.file = path; p.name = x.file.name; forgetAuto(path);
+      }
+      p.chapter = x.chapter;
+      newParts.push(p);
     }
+    entry.parts = newParts;
+    const fp = newParts.find(p => p.file);
+    if (fp) { entry.file = fp.file; entry.name = fp.name; } else { delete entry.file; delete entry.name; }
+    delete entry.chapter;
     let coverJpg = null;
     const coverFile = $('aCover').files[0];
     if (coverFile) { msg.textContent = '표지 사진을 줄이는 중…'; coverJpg = await imgToJpeg(coverFile); }
-    else if ($('aFromPdf').checked && (pdf || entry.file)) {
+    else if ($('aFromPdf').checked && fp) {
       msg.textContent = '스캔본 첫 장으로 표지를 만드는 중…';
-      const bytes = pdf ? new Uint8Array(await pdf.arrayBuffer()) : await open(key, await getBin(entry.file));
+      const bytes = firstNewPdf && rows.find(x => x.file) && fp.name === firstNewPdf.name ? new Uint8Array(await firstNewPdf.arrayBuffer()) : await open(key, await getBin(fp.file));
       coverJpg = await imgToJpeg(await pdfFirstPage(bytes));
     }
     if (coverJpg) {
@@ -650,14 +735,17 @@ $('addForm').onsubmit = async e => {
       if (!rc.ok) throw new Error('cover');
       entry.cover = cpath; coverCache.set(cpath, Promise.resolve(URL.createObjectURL(coverJpg)));
     }
-    if (!isEdit) list.push(entry);
+    if (!isEdit && !merged) list.push(entry);
     list.sort((a, b) => b.date.localeCompare(a.date));
     msg.textContent = '책 목록을 저장하는 중…';
     const r2 = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `${isEdit ? '책 수정' : '책 추가'}: ${title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
     if (!r2.ok) throw new Error('save');
+    // 뺀 챕터의 스캔본 파일은 목록 저장 뒤에 지움
+    const keep = new Set(newParts.map(p => p.file).filter(Boolean));
+    for (const path of oldFiles) if (!keep.has(path)) { try { const o = await gh(path); if (o.ok) { const { sha } = await o.json(); await gh(path, { method: 'DELETE', body: JSON.stringify({ message: `챕터 스캔본 삭제: ${title}`, sha }) }); } } catch {} }
     try { await shareToken(); } catch {}
     books = list; render(); showAdd(false);
-    $('sub').textContent = `「${title}」을(를) ${isEdit ? '고쳤어요' : '추가했어요'}. 다른 팀원 화면에는 1~2분 뒤에 보여요.`;
+    $('sub').textContent = `「${title}」을(를) ${isEdit ? '고쳤어요' : merged ? '이미 있는 같은 책에 챕터로 더했어요' : '추가했어요'}. 다른 팀원 화면에는 1~2분 뒤에 보여요.`;
   } catch (err) {
     msg.dataset.step = msg.textContent.replace(/[….\s]+$/, '');
     msg.className = 'msg err';
