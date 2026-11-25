@@ -236,6 +236,11 @@ body.ban .list li,body.ban .list li:first-child{grid-template-columns:42px 104px
 body.ban .list li .cover{display:flex;width:42px;padding:0;font-size:0;border-radius:2px 5px 5px 2px;box-shadow:inset 3px 0 0 rgba(0,0,0,.15),0 2px 6px rgba(0,0,0,.15)}
 body.ban .list li .cover > *{display:none}
 @media (max-width:520px){body.ban .list li,body.ban .list li:first-child{grid-template-columns:42px 1fr;gap:2px 12px}body.ban .list li .cover{grid-row:span 2}}
+
+.chapter{font-size:13px;color:var(--accent);margin-top:3px;line-height:1.45}
+.chapter::before{content:"챕터 ";font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:1px}
+.card .chapter{margin-top:0;font-size:14px}
+.add > label small{font-weight:400}
 </style>
 </head>
 <body>
@@ -269,6 +274,7 @@ body.ban .list li .cover > *{display:none}
         <label>책 제목<input id="aTitle" required placeholder="책 제목"></label>
         <label>저자<input id="aAuthor" placeholder="저자"></label>
       </div>
+      <label>공유한 챕터 · 소제목 <small>(스캔해서 나눠 주신 부분의 제목)</small><input id="aChapter" placeholder="예: 3장 왜 우리는 가난했나"></label>
       <label><span>스캔본 PDF<small id="pdfHint"></small></span><input id="aPdf" type="file" accept="application/pdf,.pdf"></label>
       <label><span>표지 사진<small> (jpg·png — 교보문고·알라딘 책 페이지에서 표지 이미지를 저장해 넣으세요)</small></span><input id="aCover" type="file" accept="image/*"></label>
       <label class="chk"><input id="aFromPdf" type="checkbox"> 표지 사진을 안 넣으면 스캔본 첫 장을 표지로 쓰기</label>
@@ -336,7 +342,7 @@ function hl(text, q) {
 }
 function render() {
   const q = $('q').value.trim().toLowerCase(), yr = $('yr').value;
-  const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || `${b.title} ${b.author || ''}`.toLowerCase().includes(q)));
+  const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || `${b.title} ${b.author || ''} ${b.chapter || ''}`.toLowerCase().includes(q)));
   const out = $('out'); out.replaceChildren();
   if (!shown.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = books.length ? '찾는 책이 없어요.' : '아직 등록된 책이 없어요. 「+ 책 추가」로 첫 책을 올려 보세요.'; out.append(e); return; }
   // 검색 중이 아니면 가장 최근 회의 날짜의 책을 「이번 주 소개한 책」으로 따로 보여 줌
@@ -364,6 +370,7 @@ function render() {
     if (b.author) { const a = document.createElement('span'); a.className = 'author'; a.append(hl(b.author, q)); body.append(a); }
     if (b.file) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = '스캔본'; body.append(tg); }
     body.append(editBtn(b), delCtl(b));
+    if (b.chapter) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.append(hl(b.chapter, q)); body.append(ch); }
     li.append(cover(b), d, body); ul.append(li);
   }
 }
@@ -375,6 +382,7 @@ function nowCard(b) {
   const t = document.createElement('button'); t.type = 'button'; t.className = 'title big' + (b.file ? ' has' : ''); t.textContent = b.title;
   if (b.file) t.onclick = () => openScan(b); else t.disabled = true;
   info.append(t);
+  if (b.chapter) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.textContent = b.chapter; info.append(ch); }
   if (b.author) { const a = document.createElement('div'); a.className = 'author'; a.style.margin = '0'; a.textContent = b.author; info.append(a); }
   const row = document.createElement('div'); row.className = 'row';
   if (b.file) { const v = document.createElement('button'); v.type = 'button'; v.className = 'primary'; v.textContent = '스캔본 보기'; v.onclick = () => openScan(b); row.append(v); }
@@ -543,17 +551,25 @@ function showAdd(on, b = null) {
   $('addHead').textContent = b ? `책 정보 수정 · ${b.title}` : '이번 주 책 추가';
   $('pdfHint').textContent = b ? (b.file ? ' (바꿀 때만 새 파일을 고르세요. 안 고르면 지금 스캔본 그대로예요)' : ' (스캔본을 새로 넣을 때만 고르세요)') : '';
   $('addSave').textContent = b ? '저장' : '올리기';
-  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aPdf').value = ''; $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
+  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aChapter').value = b ? (b.chapter || '') : ''; $('aPdf').value = ''; $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
   $('addForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('tokBox').hidden = DEMO || !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
 }
 $('addBtn').onclick = () => showAdd(true);
+// 스캔본 파일 이름이 「챕터 제목_저자.pdf」면 챕터·저자 칸을 자동으로 채움(비어 있을 때만)
+$('aPdf').onchange = () => {
+  const f = $('aPdf').files[0]; if (!f) return;
+  const base = f.name.replace(/.pdf$/i, '').trim(); const k = base.lastIndexOf('_');
+  const ch = (k > 0 ? base.slice(0, k) : base).trim(), au = k > 0 ? base.slice(k + 1).trim() : '';
+  if (!$('aChapter').value.trim() && ch) $('aChapter').value = ch;
+  if (!$('aAuthor').value.trim() && au) $('aAuthor').value = au;
+};
 $('addCancel').onclick = () => showAdd(false);
 $('tokReset').onclick = () => { sharedTok = ''; try { localStorage.removeItem(TOK); } catch {} $('tokBox').hidden = false; $('tokReset').hidden = true; $('aTok').focus(); };
 $('addForm').onsubmit = async e => {
   e.preventDefault();
   const msg = $('addMsg'); msg.className = 'msg';
-  const title = $('aTitle').value.trim(), date = $('aDate').value, author = $('aAuthor').value.trim(), pdf = $('aPdf').files[0];
+  const title = $('aTitle').value.trim(), date = $('aDate').value, author = $('aAuthor').value.trim(), chapter = $('aChapter').value.trim(), pdf = $('aPdf').files[0];
   if (!title || !date) { msg.className = 'msg err'; msg.textContent = '날짜와 책 제목을 적어 주세요.'; return; }
   if (DEMO) {
     const cf = $('aCover').files[0]; let url = null;
@@ -561,8 +577,8 @@ $('addForm').onsubmit = async e => {
       if (cf) url = URL.createObjectURL(await imgToJpeg(cf));
       else if ($('aFromPdf').checked && pdf) url = URL.createObjectURL(await imgToJpeg(await pdfFirstPage(new Uint8Array(await pdf.arrayBuffer()))));
     } catch { msg.className = 'msg err'; msg.textContent = '표지 이미지를 읽지 못했어요.'; return; }
-    if (editing) { const e2 = books.find(x => x.id === editing.id); Object.assign(e2, { date, title, author }); if (url) e2.coverUrl = url; }
-    else books.push({ id: 'd' + Date.now(), date, title, author, file: pdf ? 'demo' : undefined, coverUrl: url });
+    if (editing) { const e2 = books.find(x => x.id === editing.id); Object.assign(e2, { date, title, author, chapter }); if (url) e2.coverUrl = url; }
+    else books.push({ id: 'd' + Date.now(), date, title, author, chapter, file: pdf ? 'demo' : undefined, coverUrl: url });
     books.sort((a, c) => c.date.localeCompare(a.date)); render(); showAdd(false);
     $('sub').textContent = '미리보기라서 실제로 저장되지는 않아요. 표지가 어떻게 보이는지만 확인해 보세요.'; return;
   }
@@ -582,10 +598,10 @@ $('addForm').onsubmit = async e => {
     if (isEdit) {
       entry = list.find(x => x.id === editing.id);
       if (!entry) throw new Error('다른 팀원이 이 책을 지운 것 같아요. 새로고침해 주세요.');
-      Object.assign(entry, { date, title, author });
+      Object.assign(entry, { date, title, author, chapter });
     } else {
       const id = `${date}-${[...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('')}`;
-      entry = { id, date, title, author };
+      entry = { id, date, title, author, chapter };
     }
     if (pdf) {
       msg.textContent = '스캔본을 암호화해서 올리는 중… (몇 초 걸려요)';
