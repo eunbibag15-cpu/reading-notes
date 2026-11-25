@@ -342,7 +342,7 @@ function hl(text, q) {
 }
 function render() {
   const q = $('q').value.trim().toLowerCase(), yr = $('yr').value;
-  const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || `${b.title} ${b.author || ''} ${b.chapter || ''}`.toLowerCase().includes(q)));
+  const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || `${b.title} ${b.author || ''} ${chapterOf(b)}`.toLowerCase().includes(q)));
   const out = $('out'); out.replaceChildren();
   if (!shown.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = books.length ? '찾는 책이 없어요.' : '아직 등록된 책이 없어요. 「+ 책 추가」로 첫 책을 올려 보세요.'; out.append(e); return; }
   // 검색 중이 아니면 가장 최근 회의 날짜의 책을 「이번 주 소개한 책」으로 따로 보여 줌
@@ -370,7 +370,7 @@ function render() {
     if (b.author) { const a = document.createElement('span'); a.className = 'author'; a.append(hl(b.author, q)); body.append(a); }
     if (b.file) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = '스캔본'; body.append(tg); }
     body.append(editBtn(b), delCtl(b));
-    if (b.chapter) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.append(hl(b.chapter, q)); body.append(ch); }
+    if (chapterOf(b)) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.append(hl(chapterOf(b), q)); body.append(ch); }
     li.append(cover(b), d, body); ul.append(li);
   }
 }
@@ -382,7 +382,7 @@ function nowCard(b) {
   const t = document.createElement('button'); t.type = 'button'; t.className = 'title big' + (b.file ? ' has' : ''); t.textContent = b.title;
   if (b.file) t.onclick = () => openScan(b); else t.disabled = true;
   info.append(t);
-  if (b.chapter) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.textContent = b.chapter; info.append(ch); }
+  if (chapterOf(b)) { const ch = document.createElement('div'); ch.className = 'chapter'; ch.textContent = chapterOf(b); info.append(ch); }
   if (b.author) { const a = document.createElement('div'); a.className = 'author'; a.style.margin = '0'; a.textContent = b.author; info.append(a); }
   const row = document.createElement('div'); row.className = 'row';
   if (b.file) { const v = document.createElement('button'); v.type = 'button'; v.className = 'primary'; v.textContent = '스캔본 보기'; v.onclick = () => openScan(b); row.append(v); }
@@ -392,6 +392,20 @@ function nowCard(b) {
 // 진짜 표지 이미지(암호화돼 있음 → 풀어서 보여 줌). 없으면 제목으로 만든 색 표지
 const coverCache = new Map();
 const loadCover = p => { if (!coverCache.has(p)) coverCache.set(p, getBin(p).then(x => open(key, x)).then(u => URL.createObjectURL(new Blob([u], { type: 'image/jpeg' })))); return coverCache.get(p); };
+// 표지를 따로 안 넣은 책은 스캔본 첫 장으로 표지를 만들어 보여 줌(한 권씩 차례로, 이 기기에 저장해 다음엔 바로)
+const autoCache = new Map(); let autoQueue = Promise.resolve();
+function autoCover(path) {
+  if (autoCache.has(path)) return autoCache.get(path);
+  const KEY = 'rn-cover:' + path;
+  let saved = null; try { saved = localStorage.getItem(KEY); } catch {}
+  const p = saved ? Promise.resolve(saved) : (autoQueue = autoQueue.catch(() => {}).then(async () => {
+    const jpg = await imgToJpeg(await pdfFirstPage(await open(key, await getBin(path))));
+    const url = await new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(jpg); });
+    try { localStorage.setItem(KEY, url); } catch {}
+    return url;
+  }));
+  autoCache.set(path, p); return p;
+}
 function setImg(d, u) { d.style.backgroundImage = `url("${u}")`; d.classList.add('img'); }
 // 표지 사진은 가로 480px JPEG로 줄여서 저장(가볍게)
 async function imgToJpeg(src) {
@@ -411,6 +425,11 @@ async function pdfFirstPage(bytes) {
 }
 // 책 표지(제목으로 만든 색 표지). 디자인에 따라 보이거나 숨김
 const COVERS = ['#3b5a86', '#4f7a64', '#a0602e', '#7a4f86', '#2f6f73', '#8a5a44', '#5b6b8c'];
+function chapterOf(b) {
+  if (b.chapter) return b.chapter;
+  const n = (b.name || '').replace(/.pdf$/i, ''); const k = n.lastIndexOf('_');
+  return k > 0 ? n.slice(0, k).trim() : '';
+}
 function cover(b) {
   const d = document.createElement('div'); d.className = 'cover';
   let n = 0; for (const ch of b.id + b.title) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
@@ -420,6 +439,7 @@ function cover(b) {
   d.append(t, s);
   if (b.coverUrl) setImg(d, b.coverUrl);
   else if (b.cover && key) loadCover(b.cover).then(u => setImg(d, u)).catch(() => {});
+  else if (b.file && key) autoCover(b.file).then(u => setImg(d, u)).catch(() => {});
   if (b.file) { d.classList.add('has'); d.onclick = () => openScan(b); }
   return d;
 }
@@ -552,7 +572,7 @@ function showAdd(on, b = null) {
   $('addHead').textContent = b ? `책 정보 수정 · ${b.title}` : '이번 주 책 추가';
   $('pdfHint').textContent = b ? (b.file ? ' (바꿀 때만 새 파일을 고르세요. 안 고르면 지금 스캔본 그대로예요)' : ' (스캔본을 새로 넣을 때만 고르세요)') : '';
   $('addSave').textContent = b ? '저장' : '올리기';
-  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aChapter').value = b ? (b.chapter || '') : ''; $('aPdf').value = ''; $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
+  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aChapter').value = b ? chapterOf(b) : ''; $('aPdf').value = ''; $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
   $('addForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('tokBox').hidden = DEMO || !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
 }
