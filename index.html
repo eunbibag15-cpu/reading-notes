@@ -139,17 +139,18 @@ body.look-b .list li > div:last-child{display:flex;flex-wrap:wrap;gap:4px 10px;a
 
 /* ===== 시안 A · 배너형: 이번 주 책은 남색 큰 배너, 지난 책은 차분한 목록 ===== */
 body.look-a .sec:first-child{display:none}
-body.look-a .now{grid-template-columns:1fr}
-body.look-a .card{display:grid;grid-template-columns:118px 1fr;gap:26px;align-items:center;background:linear-gradient(135deg,#2a4670,#3b5a86);color:#fff;border:0;border-radius:20px;padding:28px 30px;box-shadow:0 14px 30px rgba(42,70,112,.25)}
-body.look-a .card .cover{display:flex;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 10px 20px rgba(0,0,0,.25)}
+body.look-a .now{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+body.look-a .card{display:grid;grid-template-columns:78px 1fr;gap:18px;align-items:center;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 6px 18px rgba(42,70,112,.08)}
+body.look-a .card .cover{display:flex;font-size:11px;padding:9px 8px;box-shadow:inset 5px 0 0 rgba(0,0,0,.15),0 4px 10px rgba(0,0,0,.15)}
 body.look-a .card .badge{display:inline-block;background:#f4c95d;color:#2a3550}
-body.look-a .card .title.big{color:#fff;font-size:27px}
-body.look-a .card .author{color:#c9d6ea}
-body.look-a .card button.primary{background:#fff;border-color:#fff;color:#2a4670}
-body.look-a .card .del,body.look-a .card .del button.link{color:#c9d6ea}
+body.look-a .card .title.big{color:var(--ink);font-size:19px;line-height:1.35}
+body.look-a .card .author{color:var(--muted);font-size:13px}
+body.look-a .card button.primary{background:var(--accent);border-color:var(--accent);color:#fff;padding:7px 14px;font-size:14px}
+body.look-a .card .row{margin-top:4px}
+body.look-a .card .del{color:var(--danger)}
 body.look-a .sec{margin-top:34px}
 body.look-a .list .title{font-weight:500}
-@media (max-width:520px){body.look-a .card{grid-template-columns:84px 1fr;gap:16px;padding:20px}}
+@media (max-width:520px){body.look-a .card{grid-template-columns:68px 1fr;gap:14px;padding:16px}}
 
 /* ===== 시안 C · 타임라인형: 이번 주 책은 NOW 표시 카드, 지난 책은 날짜 타임라인 ===== */
 body.look-c .card{display:grid;grid-template-columns:96px 1fr;gap:22px;align-items:center;background:var(--paper);border:2px solid var(--accent);border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(59,90,134,.12)}
@@ -164,7 +165,7 @@ body.look-c .list li,body.look-c .list li:first-child{position:relative;border:0
 body.look-c .list li:hover{background:none}
 body.look-c .list li::before{content:"";position:absolute;left:-8px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--accent)}
 body.look-c .list li .title{font-weight:500}
-body.look-a .card .edit button.link{color:#c9d6ea}
+body.look-a .card .edit button.link{color:var(--muted)}
 
 /* ===== 배너형 공통 (a1·a2·a3): 이번 주 책은 큰 배너, 지난 책은 목록 ===== */
 body.ban .sec:first-child{display:none}
