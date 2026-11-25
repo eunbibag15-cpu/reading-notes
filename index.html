@@ -137,6 +137,104 @@ body.look-b .list li .del,body.look-b .list li .edit{margin:0;font-size:12px}
 body.look-b .list li > div:last-child{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
 @media (max-width:520px){body.look-b .card{grid-template-columns:100px 1fr;gap:16px;padding:18px}body.look-b .list{grid-template-columns:repeat(3,1fr);gap:16px 10px}}
 
+/* ===== 시안 A · 배너형: 이번 주 책은 남색 큰 배너, 지난 책은 차분한 목록 ===== */
+body.look-a .sec:first-child{display:none}
+body.look-a .now{grid-template-columns:1fr}
+body.look-a .card{display:grid;grid-template-columns:118px 1fr;gap:26px;align-items:center;background:linear-gradient(135deg,#2a4670,#3b5a86);color:#fff;border:0;border-radius:20px;padding:28px 30px;box-shadow:0 14px 30px rgba(42,70,112,.25)}
+body.look-a .card .cover{display:flex;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 10px 20px rgba(0,0,0,.25)}
+body.look-a .card .badge{display:inline-block;background:#f4c95d;color:#2a3550}
+body.look-a .card .title.big{color:#fff;font-size:27px}
+body.look-a .card .author{color:#c9d6ea}
+body.look-a .card button.primary{background:#fff;border-color:#fff;color:#2a4670}
+body.look-a .card .del,body.look-a .card .del button.link{color:#c9d6ea}
+body.look-a .sec{margin-top:34px}
+body.look-a .list .title{font-weight:500}
+@media (max-width:520px){body.look-a .card{grid-template-columns:84px 1fr;gap:16px;padding:20px}}
+
+/* ===== 시안 C · 타임라인형: 이번 주 책은 NOW 표시 카드, 지난 책은 날짜 타임라인 ===== */
+body.look-c .card{display:grid;grid-template-columns:96px 1fr;gap:22px;align-items:center;background:var(--paper);border:2px solid var(--accent);border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(59,90,134,.12)}
+body.look-c .card .cover{display:flex;font-size:12px}
+body.look-c .card .badge{display:inline-block;background:var(--accent-soft);color:var(--accent)}
+body.look-c .card .badge::before{content:"● ";color:#e0574a}
+body.look-c .card .title.big{font-size:24px}
+body.look-c .sec{margin-top:34px}
+body.look-c .year{color:var(--accent);margin:16px 0 4px}
+body.look-c .list{background:none;border:0;border-left:2px solid var(--line);border-radius:0;box-shadow:none;margin-left:6px;overflow:visible}
+body.look-c .list li,body.look-c .list li:first-child{position:relative;border:0;padding:12px 0 12px 24px;grid-template-columns:110px 1fr}
+body.look-c .list li:hover{background:none}
+body.look-c .list li::before{content:"";position:absolute;left:-8px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--accent)}
+body.look-c .list li .title{font-weight:500}
+body.look-a .card .edit button.link{color:#c9d6ea}
+
+/* ===== 배너형 공통 (a1·a2·a3): 이번 주 책은 큰 배너, 지난 책은 목록 ===== */
+body.ban .sec:first-child{display:none}
+body.ban .now{grid-template-columns:1fr;gap:16px}
+body.ban .card{display:grid;grid-template-columns:128px 1fr;gap:28px;align-items:center;border:0;border-radius:24px;padding:30px 32px;position:relative;overflow:hidden}
+body.ban .card .cover{display:flex;position:relative;z-index:1}
+body.ban .card .info{position:relative;z-index:1}
+body.ban .card .badge{display:inline-block}
+body.ban .card .title.big{font-size:28px;line-height:1.3}
+body.ban .sec{margin-top:36px}
+body.ban .list{border:0;background:none;box-shadow:none;display:flex;flex-direction:column;gap:8px;overflow:visible}
+body.ban .list li,body.ban .list li:first-child{border:0;border-radius:14px;background:var(--paper);padding:14px 20px;align-items:center}
+body.ban .list .title{font-weight:500}
+@media (max-width:520px){body.ban .card{grid-template-columns:88px 1fr;gap:16px;padding:22px 20px}body.ban .card .title.big{font-size:22px}}
+
+/* ----- a1 · 미드나잇 골드: 짙은 남색 배너 + 금색 포인트, 고급스러운 느낌 ----- */
+body.look-a1{--bg:#f4f5f8;--accent:#27375a;--accent-soft:#eceff6;--gold:#d9b25f}
+body.look-a1 h1::after{content:"";display:block;width:36px;height:3px;background:var(--gold);border-radius:2px;margin-top:10px}
+body.look-a1 .card{background:radial-gradient(circle at 85% 20%,rgba(217,178,95,.22),transparent 45%),linear-gradient(135deg,#1e2b47,#2f4470);color:#fff;box-shadow:0 18px 40px rgba(30,43,71,.28)}
+body.look-a1 .card .cover{box-shadow:0 0 0 3px rgba(255,255,255,.9),0 12px 24px rgba(0,0,0,.35)}
+body.look-a1 .card .badge{background:var(--gold);color:#1e2b47}
+body.look-a1 .card .title.big{color:#fff}
+body.look-a1 .card .author{color:#c7d0e3}
+body.look-a1 .card button.primary{background:var(--gold);border-color:var(--gold);color:#1e2b47}
+body.look-a1 .card .del,body.look-a1 .card button.link{color:#c7d0e3}
+body.look-a1 .list li{box-shadow:0 2px 8px rgba(30,43,71,.05)}
+body.look-a1 .date{color:#a8863f}
+
+/* ----- a2 · 테라코타 책방: 크림색 바탕 + 따뜻한 주황 배너, 명조 제목 ----- */
+body.look-a2{--bg:#fbf6ef;--paper:#fffdf9;--ink:#3b2a20;--muted:#8a7464;--line:#efe3d3;--accent:#b8583a;--accent-soft:#f7e6dc;--f-title:"Gowun Batang","Batang",serif}
+body.look-a2 h1{font-family:var(--f-title);color:var(--accent);font-size:32px}
+body.look-a2 header{border-bottom:1px dashed #e2cfb8}
+body.look-a2 .card{background:linear-gradient(120deg,#c4613f,#e0956a);color:#fff;box-shadow:0 18px 36px rgba(184,88,58,.25)}
+body.look-a2 .card::after{content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.12)}
+body.look-a2 .card .cover{box-shadow:0 0 0 3px #fffdf9,0 12px 24px rgba(80,30,10,.3)}
+body.look-a2 .card .badge{background:#fffdf9;color:#b8583a}
+body.look-a2 .card .title.big{color:#fff}
+body.look-a2 .card .author{color:#fde6d8}
+body.look-a2 .card button.primary{background:#fffdf9;border-color:#fffdf9;color:#b8583a}
+body.look-a2 .card .del,body.look-a2 .card button.link{color:#fde6d8}
+body.look-a2 .list li{border:1px solid var(--line)}
+body.look-a2 .date{color:var(--accent)}
+body.look-a2 .tag{background:var(--accent-soft);color:var(--accent)}
+body.look-a2 button.primary{background:var(--accent);border-color:var(--accent)}
+
+/* ----- a3 · 라일락 블루: 연보라~하늘 그라데이션, 산뜻하고 부드러운 느낌 ----- */
+body.look-a3{--bg:#f5f6fc;--ink:#2a2d45;--muted:#767a98;--line:#e4e6f3;--accent:#5b63d3;--accent-soft:#eceefe}
+body.look-a3 h1{background:linear-gradient(90deg,#5b63d3,#9a6fd6);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:32px}
+body.look-a3 .card{background:linear-gradient(135deg,#6f78e0 0%,#9b7fe0 55%,#c49ee6 100%);color:#fff;box-shadow:0 18px 40px rgba(111,120,224,.3)}
+body.look-a3 .card::after{content:"";position:absolute;left:-40px;top:-70px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.14)}
+body.look-a3 .card .cover{box-shadow:0 0 0 3px rgba(255,255,255,.9),0 12px 24px rgba(40,30,90,.3)}
+body.look-a3 .card .badge{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.5)}
+body.look-a3 .card .title.big{color:#fff}
+body.look-a3 .card .author{color:#eee8ff}
+body.look-a3 .card button.primary{background:#fff;border-color:#fff;color:#5b63d3}
+body.look-a3 .card .del,body.look-a3 .card button.link{color:#eee8ff}
+body.look-a3 .list li{box-shadow:0 2px 10px rgba(91,99,211,.06)}
+body.look-a3 .date{color:var(--accent)}
+body.look-a3 button.primary{background:var(--accent);border-color:var(--accent)}
+
+.cover.img{background-size:cover;background-position:center top;background-color:#ddd}
+.cover.img > *{display:none}
+.add label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-weight:400}
+.add label.chk input{width:auto}
+
+/* 배너형: 지난 책 목록에도 작은 표지 */
+body.ban .list li,body.ban .list li:first-child{grid-template-columns:42px 104px 1fr;gap:14px}
+body.ban .list li .cover{display:flex;width:42px;padding:0;font-size:0;border-radius:2px 5px 5px 2px;box-shadow:inset 3px 0 0 rgba(0,0,0,.15),0 2px 6px rgba(0,0,0,.15)}
+body.ban .list li .cover > *{display:none}
+@media (max-width:520px){body.ban .list li,body.ban .list li:first-child{grid-template-columns:42px 1fr;gap:2px 12px}body.ban .list li .cover{grid-row:span 2}}
 </style>
 </head>
 <body>
@@ -171,6 +269,8 @@ body.look-b .list li > div:last-child{display:flex;flex-wrap:wrap;gap:4px 10px;a
         <label>저자<input id="aAuthor" placeholder="저자"></label>
       </div>
       <label><span>스캔본 PDF<small id="pdfHint"></small></span><input id="aPdf" type="file" accept="application/pdf,.pdf"></label>
+      <label><span>표지 사진<small> (jpg·png — 교보문고·알라딘 책 페이지에서 표지 이미지를 저장해 넣으세요)</small></span><input id="aCover" type="file" accept="image/*"></label>
+      <label class="chk"><input id="aFromPdf" type="checkbox"> 표지 사진을 안 넣으면 스캔본 첫 장을 표지로 쓰기</label>
       <div id="tokBox" class="tok" hidden>
         <label>GitHub 토큰 <small>(처음 한 번만 — 넣으면 팀 비밀번호로 암호화해 저장돼서, 다음부터는 팀원 누구나 토큰 없이 추가·삭제할 수 있어요)</small><input id="aTok" type="password" autocomplete="off" placeholder="github_pat_로 시작하는 값"></label>
         <p class="msg">토큰 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 토큰 만들기 페이지</a>에서 Repository access를 「Only select repositories → reading-notes」, Permissions의 Contents를 「Read and write」로 정해 만드세요.</p>
@@ -191,12 +291,13 @@ body.look-b .list li > div:last-child{display:flex;flex-wrap:wrap;gap:4px 10px;a
 </div>
 
 <script>
-const DEFAULT_LOOK = 'b';
+const DEFAULT_LOOK = 'a2';
 const $ = id => document.getElementById(id);
 // ---- 디자인 시안: ?look=d|e|f 로 바꿔 보기, ?demo=1 이면 예시 데이터로 미리보기(비밀번호·저장 없음) ----
 const params = new URLSearchParams(location.search);
-const LOOK = ['b'].includes(params.get('look')) ? params.get('look') : DEFAULT_LOOK;
+const LOOK = ['a','b','c','a1','a2','a3'].includes(params.get('look')) ? params.get('look') : DEFAULT_LOOK;
 if (LOOK) document.body.classList.add('look-' + LOOK);
+if (['a1','a2','a3'].includes(LOOK)) document.body.classList.add('ban');
 const DEMO = params.get('demo') === '1';
 
 const WD = ['일','월','화','수','목','금','토'];
@@ -279,6 +380,26 @@ function nowCard(b) {
   row.append(editBtn(b), delCtl(b)); info.append(row);
   return c;
 }
+// 진짜 표지 이미지(암호화돼 있음 → 풀어서 보여 줌). 없으면 제목으로 만든 색 표지
+const coverCache = new Map();
+const loadCover = p => { if (!coverCache.has(p)) coverCache.set(p, getBin(p).then(x => open(key, x)).then(u => URL.createObjectURL(new Blob([u], { type: 'image/jpeg' })))); return coverCache.get(p); };
+function setImg(d, u) { d.style.backgroundImage = `url("${u}")`; d.classList.add('img'); }
+// 표지 사진은 가로 480px JPEG로 줄여서 저장(가볍게)
+async function imgToJpeg(src) {
+  const bmp = src instanceof HTMLCanvasElement ? src : await createImageBitmap(src);
+  const w = Math.min(480, bmp.width), hh = Math.round(bmp.height * w / bmp.width);
+  const c = document.createElement('canvas'); c.width = w; c.height = hh; c.getContext('2d').drawImage(bmp, 0, 0, w, hh);
+  return new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.85));
+}
+// 스캔본 PDF 첫 장을 그림으로
+async function pdfFirstPage(bytes) {
+  await loadPdfJs();
+  const pdf = await window.pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+  const p = await pdf.getPage(1); const w0 = p.getViewport({ scale: 1 }).width;
+  const vp = p.getViewport({ scale: 960 / w0 });
+  const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+  await p.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise; return c;
+}
 // 책 표지(제목으로 만든 색 표지). 디자인에 따라 보이거나 숨김
 const COVERS = ['#3b5a86', '#4f7a64', '#a0602e', '#7a4f86', '#2f6f73', '#8a5a44', '#5b6b8c'];
 function cover(b) {
@@ -288,6 +409,8 @@ function cover(b) {
   const t = document.createElement('span'); t.textContent = b.title;
   const s = document.createElement('small'); s.textContent = b.author || '화요책방';
   d.append(t, s);
+  if (b.coverUrl) setImg(d, b.coverUrl);
+  else if (b.cover && key) loadCover(b.cover).then(u => setImg(d, u)).catch(() => {});
   if (b.file) { d.classList.add('has'); d.onclick = () => openScan(b); }
   return d;
 }
@@ -328,6 +451,7 @@ async function removeBook(b) {
     const f = await gh(b.file);
     if (f.ok) { const { sha } = await f.json(); await gh(b.file, { method: 'DELETE', body: JSON.stringify({ message: `스캔본 삭제: ${b.title}`, sha }) }); }
   }
+  if (b.cover) { const c2 = await gh(b.cover); if (c2.ok) { const { sha } = await c2.json(); await gh(b.cover, { method: 'DELETE', body: JSON.stringify({ message: `표지 삭제: ${b.title}`, sha }) }); } }
   books = list.sort((a, c) => c.date.localeCompare(a.date)); render();
   $('sub').textContent = `「${b.title}」을(를) 지웠어요. 다른 팀원 화면에는 1~2분 뒤에 반영돼요.`;
 }
@@ -418,9 +542,9 @@ function showAdd(on, b = null) {
   $('addHead').textContent = b ? `책 정보 수정 · ${b.title}` : '이번 주 책 추가';
   $('pdfHint').textContent = b ? (b.file ? ' (바꿀 때만 새 파일을 고르세요. 안 고르면 지금 스캔본 그대로예요)' : ' (스캔본을 새로 넣을 때만 고르세요)') : '';
   $('addSave').textContent = b ? '저장' : '올리기';
-  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aPdf').value = ''; $('aTok').value = '';
+  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aPdf').value = ''; $('aTok').value = ''; $('aCover').value = ''; $('aFromPdf').checked = !b || !b.cover;
   $('addForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  $('tokBox').hidden = !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
+  $('tokBox').hidden = DEMO || !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
 }
 $('addBtn').onclick = () => showAdd(true);
 $('addCancel').onclick = () => showAdd(false);
@@ -430,6 +554,17 @@ $('addForm').onsubmit = async e => {
   const msg = $('addMsg'); msg.className = 'msg';
   const title = $('aTitle').value.trim(), date = $('aDate').value, author = $('aAuthor').value.trim(), pdf = $('aPdf').files[0];
   if (!title || !date) { msg.className = 'msg err'; msg.textContent = '날짜와 책 제목을 적어 주세요.'; return; }
+  if (DEMO) {
+    const cf = $('aCover').files[0]; let url = null;
+    try {
+      if (cf) url = URL.createObjectURL(await imgToJpeg(cf));
+      else if ($('aFromPdf').checked && pdf) url = URL.createObjectURL(await imgToJpeg(await pdfFirstPage(new Uint8Array(await pdf.arrayBuffer()))));
+    } catch { msg.className = 'msg err'; msg.textContent = '표지 이미지를 읽지 못했어요.'; return; }
+    if (editing) { const e2 = books.find(x => x.id === editing.id); Object.assign(e2, { date, title, author }); if (url) e2.coverUrl = url; }
+    else books.push({ id: 'd' + Date.now(), date, title, author, file: pdf ? 'demo' : undefined, coverUrl: url });
+    books.sort((a, c) => c.date.localeCompare(a.date)); render(); showAdd(false);
+    $('sub').textContent = '미리보기라서 실제로 저장되지는 않아요. 표지가 어떻게 보이는지만 확인해 보세요.'; return;
+  }
   if (!getTok()) {
     const t = $('aTok').value.trim();
     if (!t) { msg.className = 'msg err'; msg.textContent = 'GitHub 토큰을 넣어 주세요.'; $('aTok').focus(); return; }
@@ -460,6 +595,22 @@ $('addForm').onsubmit = async e => {
       const r = await gh(path, { method: 'PUT', body: JSON.stringify({ message: `스캔본 ${sha ? '교체' : '추가'}: ${title}`, content: toB64(sealed), ...(sha ? { sha } : {}) }) });
       if (!r.ok) throw new Error('upload');
       entry.file = path; entry.name = pdf.name;
+    }
+    let coverJpg = null;
+    const coverFile = $('aCover').files[0];
+    if (coverFile) { msg.textContent = '표지 사진을 줄이는 중…'; coverJpg = await imgToJpeg(coverFile); }
+    else if ($('aFromPdf').checked && (pdf || entry.file)) {
+      msg.textContent = '스캔본 첫 장으로 표지를 만드는 중…';
+      const bytes = pdf ? new Uint8Array(await pdf.arrayBuffer()) : await open(key, await getBin(entry.file));
+      coverJpg = await imgToJpeg(await pdfFirstPage(bytes));
+    }
+    if (coverJpg) {
+      msg.textContent = '표지를 올리는 중…';
+      const cpath = entry.cover || `data/${entry.id}-cover.bin`;
+      let csha; if (entry.cover) { const o = await gh(cpath); if (o.ok) csha = (await o.json()).sha; }
+      const rc = await gh(cpath, { method: 'PUT', body: JSON.stringify({ message: `표지 ${csha ? '교체' : '추가'}: ${title}`, content: toB64(await seal(new Uint8Array(await coverJpg.arrayBuffer()))), ...(csha ? { sha: csha } : {}) }) });
+      if (!rc.ok) throw new Error('cover');
+      entry.cover = cpath; coverCache.set(cpath, Promise.resolve(URL.createObjectURL(coverJpg)));
     }
     if (!isEdit) list.push(entry);
     list.sort((a, b) => b.date.localeCompare(a.date));
