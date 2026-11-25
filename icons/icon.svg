@@ -1,8 +1,1 @@
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'>
-<rect width='512' height='512' fill='#33507c'/>
-<g transform='translate(256 268)'>
-<path d='M-150 -100 C-100 -122 -40 -118 0 -88 L0 120 C-40 92 -100 88 -150 108 Z' fill='#ffffff'/>
-<path d='M150 -100 C100 -122 40 -118 0 -88 L0 120 C40 92 100 88 150 108 Z' fill='#e9eef6'/>
-<path d='M0 -88 L0 120' stroke='#33507c' stroke-width='6'/>
-<path d='M70 -112 L70 -30 L92 -48 L114 -30 L114 -108' fill='#f4c95d'/>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect x="16" y="16" width="480" height="480" rx="112" fill="#33507c"/><g transform="translate(256 268)"><path d="M-150 -100C-100 -122 -40 -118 0 -88L0 120C-40 92 -100 88 -150 108Z" fill="#fff"/><path d="M150 -100C100 -122 40 -118 0 -88L0 120C40 92 100 88 150 108Z" fill="#e9eef6"/><path d="M0 -88V120" stroke="#33507c" stroke-width="6"/><path d="M70 -112V-30L92 -48L114 -30V-108" fill="#f4c95d"/></g></svg>
