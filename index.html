@@ -63,6 +63,8 @@ footer button{font-size:12px;padding:0;border:0;background:none;color:var(--mute
 .card{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .card .title.big{font-size:22px}
 .card .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.edit{margin-left:10px;font-size:13px}
+.card .edit{margin-left:0}
 .del{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:10px;font-size:13px;color:var(--danger)}
 .del button{padding:4px 10px;font-size:13px}
 .del button.link{padding:0}
@@ -108,6 +110,33 @@ button.title.has:hover{color:var(--accent);text-decoration:underline}
 .tag{background:var(--accent-soft);color:var(--accent);font-weight:500}
 @media (max-width:520px){.list li{grid-template-columns:1fr}}
 
+
+.card .info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cover,.badge{display:none}
+.cover{aspect-ratio:2/3;border-radius:3px 10px 10px 3px;background:var(--cv);color:#fff;padding:14px 12px;flex-direction:column;justify-content:space-between;font-weight:700;font-size:14px;line-height:1.35;word-break:keep-all;box-shadow:inset 7px 0 0 rgba(0,0,0,.16),0 6px 16px rgba(0,0,0,.16);overflow:hidden}
+.cover small{font-weight:400;font-size:11px;opacity:.8}
+.cover.has{cursor:pointer}
+.badge{align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}
+
+/* ===== 확정 디자인 B · 표지 책장형: 이번 주 책은 큰 표지 카드, 지난 책은 표지 격자 ===== */
+body.look-b{--bg:#faf8f5;--line:#ebe6df}
+body.look-b .card{display:grid;grid-template-columns:150px 1fr;gap:28px;align-items:center;background:var(--paper);border:0;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(60,40,20,.08)}
+body.look-b .card .cover{display:flex;font-size:16px}
+body.look-b .card .badge{display:inline-block;background:var(--accent);color:#fff}
+body.look-b .card .title.big{font-size:26px}
+body.look-b .sec{margin-top:34px}
+body.look-b .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:22px 16px;background:none;border:0;box-shadow:none;overflow:visible}
+body.look-b .list li,body.look-b .list li:first-child{display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:none}
+body.look-b .list li:hover{background:none}
+body.look-b .list li .cover{display:flex;width:100%;font-size:13px;transition:transform .15s}
+body.look-b .list li .cover.has:hover{transform:translateY(-4px)}
+body.look-b .list li .date{font-size:12px}
+body.look-b .list li .title{font-size:14px;line-height:1.4}
+body.look-b .list li .author,body.look-b .list li .tag{display:none}
+body.look-b .list li .del,body.look-b .list li .edit{margin:0;font-size:12px}
+body.look-b .list li > div:last-child{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+@media (max-width:520px){body.look-b .card{grid-template-columns:100px 1fr;gap:16px;padding:18px}body.look-b .list{grid-template-columns:repeat(3,1fr);gap:16px 10px}}
+
 </style>
 </head>
 <body>
@@ -135,13 +164,13 @@ button.title.has:hover{color:var(--accent);text-decoration:underline}
     </div>
 
     <form class="add" id="addForm" hidden>
-      <h2>이번 주 책 추가</h2>
+      <h2 id="addHead">이번 주 책 추가</h2>
       <div class="grid3">
         <label>회의 날짜<input id="aDate" type="date" required></label>
         <label>책 제목<input id="aTitle" required placeholder="책 제목"></label>
         <label>저자<input id="aAuthor" placeholder="저자"></label>
       </div>
-      <label>스캔본 PDF<input id="aPdf" type="file" accept="application/pdf,.pdf"></label>
+      <label><span>스캔본 PDF<small id="pdfHint"></small></span><input id="aPdf" type="file" accept="application/pdf,.pdf"></label>
       <div id="tokBox" class="tok" hidden>
         <label>GitHub 토큰 <small>(처음 한 번만 — 넣으면 팀 비밀번호로 암호화해 저장돼서, 다음부터는 팀원 누구나 토큰 없이 추가·삭제할 수 있어요)</small><input id="aTok" type="password" autocomplete="off" placeholder="github_pat_로 시작하는 값"></label>
         <p class="msg">토큰 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 토큰 만들기 페이지</a>에서 Repository access를 「Only select repositories → reading-notes」, Permissions의 Contents를 「Read and write」로 정해 만드세요.</p>
@@ -162,11 +191,11 @@ button.title.has:hover{color:var(--accent);text-decoration:underline}
 </div>
 
 <script>
-const DEFAULT_LOOK = '';
+const DEFAULT_LOOK = 'b';
 const $ = id => document.getElementById(id);
 // ---- 디자인 시안: ?look=d|e|f 로 바꿔 보기, ?demo=1 이면 예시 데이터로 미리보기(비밀번호·저장 없음) ----
 const params = new URLSearchParams(location.search);
-const LOOK = [].includes(params.get('look')) ? params.get('look') : DEFAULT_LOOK;
+const LOOK = ['b'].includes(params.get('look')) ? params.get('look') : DEFAULT_LOOK;
 if (LOOK) document.body.classList.add('look-' + LOOK);
 const DEMO = params.get('demo') === '1';
 
@@ -232,20 +261,42 @@ function render() {
     body.append(t);
     if (b.author) { const a = document.createElement('span'); a.className = 'author'; a.append(hl(b.author, q)); body.append(a); }
     if (b.file) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = '스캔본'; body.append(tg); }
-    body.append(delCtl(b));
-    li.append(d, body); ul.append(li);
+    body.append(editBtn(b), delCtl(b));
+    li.append(cover(b), d, body); ul.append(li);
   }
 }
 function nowCard(b) {
   const c = document.createElement('div'); c.className = 'card';
+  const info = document.createElement('div'); info.className = 'info';
+  const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = '이번 주 · ' + fmt(b.date); info.append(bd);
+  c.append(cover(b), info);
   const t = document.createElement('button'); t.type = 'button'; t.className = 'title big' + (b.file ? ' has' : ''); t.textContent = b.title;
   if (b.file) t.onclick = () => openScan(b); else t.disabled = true;
-  c.append(t);
-  if (b.author) { const a = document.createElement('div'); a.className = 'author'; a.style.margin = '0'; a.textContent = b.author; c.append(a); }
+  info.append(t);
+  if (b.author) { const a = document.createElement('div'); a.className = 'author'; a.style.margin = '0'; a.textContent = b.author; info.append(a); }
   const row = document.createElement('div'); row.className = 'row';
   if (b.file) { const v = document.createElement('button'); v.type = 'button'; v.className = 'primary'; v.textContent = '스캔본 보기'; v.onclick = () => openScan(b); row.append(v); }
-  row.append(delCtl(b)); c.append(row);
+  row.append(editBtn(b), delCtl(b)); info.append(row);
   return c;
+}
+// 책 표지(제목으로 만든 색 표지). 디자인에 따라 보이거나 숨김
+const COVERS = ['#3b5a86', '#4f7a64', '#a0602e', '#7a4f86', '#2f6f73', '#8a5a44', '#5b6b8c'];
+function cover(b) {
+  const d = document.createElement('div'); d.className = 'cover';
+  let n = 0; for (const ch of b.id + b.title) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
+  d.style.setProperty('--cv', COVERS[n % COVERS.length]);
+  const t = document.createElement('span'); t.textContent = b.title;
+  const s = document.createElement('small'); s.textContent = b.author || '화요책방';
+  d.append(t, s);
+  if (b.file) { d.classList.add('has'); d.onclick = () => openScan(b); }
+  return d;
+}
+// 수정: 추가 양식에 지금 정보를 채워 열어 줌(날짜·제목·저자·스캔본 교체)
+function editBtn(b) {
+  const wrap = document.createElement('span'); wrap.className = 'edit';
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'link'; btn.textContent = '수정';
+  btn.onclick = () => showAdd(true, b);
+  wrap.append(btn); return wrap;
 }
 // 삭제: 한 번 더 확인한 뒤 GitHub에서 책 목록과 스캔본을 지움(토큰 필요)
 function delCtl(b) {
@@ -359,10 +410,16 @@ async function gh(path, opts = {}) {
   return r;
 }
 const lastTuesday = () => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() - 2 + 7) % 7)); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-function showAdd(on) {
+let editing = null;  // 수정 중인 책(없으면 새 책 추가)
+function showAdd(on, b = null) {
+  editing = on ? b : null;
   $('addForm').hidden = !on; $('addBtn').hidden = on;
   if (!on) return;
-  $('aDate').value = lastTuesday(); $('aTitle').value = ''; $('aAuthor').value = ''; $('aPdf').value = ''; $('aTok').value = '';
+  $('addHead').textContent = b ? `책 정보 수정 · ${b.title}` : '이번 주 책 추가';
+  $('pdfHint').textContent = b ? (b.file ? ' (바꿀 때만 새 파일을 고르세요. 안 고르면 지금 스캔본 그대로예요)' : ' (스캔본을 새로 넣을 때만 고르세요)') : '';
+  $('addSave').textContent = b ? '저장' : '올리기';
+  $('aDate').value = b ? b.date : lastTuesday(); $('aTitle').value = b ? b.title : ''; $('aAuthor').value = b ? (b.author || '') : ''; $('aPdf').value = ''; $('aTok').value = '';
+  $('addForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('tokBox').hidden = !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
 }
 $('addBtn').onclick = () => showAdd(true);
@@ -384,22 +441,34 @@ $('addForm').onsubmit = async e => {
     const cur = await (await gh('data/books.bin')).json();
     const raw = await blobBytes(cur.sha);
     const list = JSON.parse(new TextDecoder().decode(await open(key, raw)));
-    const id = `${date}-${[...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('')}`;
-    const entry = { id, date, title, author };
+    const isEdit = !!editing;
+    let entry;
+    if (isEdit) {
+      entry = list.find(x => x.id === editing.id);
+      if (!entry) throw new Error('다른 팀원이 이 책을 지운 것 같아요. 새로고침해 주세요.');
+      Object.assign(entry, { date, title, author });
+    } else {
+      const id = `${date}-${[...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+      entry = { id, date, title, author };
+    }
     if (pdf) {
       msg.textContent = '스캔본을 암호화해서 올리는 중… (몇 초 걸려요)';
       const sealed = await seal(new Uint8Array(await pdf.arrayBuffer()));
-      const r = await gh(`data/${id}.bin`, { method: 'PUT', body: JSON.stringify({ message: `스캔본 추가: ${title}`, content: toB64(sealed) }) });
+      const path = entry.file || `data/${entry.id}.bin`;
+      let sha;  // 이미 있는 스캔본을 바꿀 때는 sha가 필요함
+      if (entry.file) { const old = await gh(path); if (old.ok) sha = (await old.json()).sha; }
+      const r = await gh(path, { method: 'PUT', body: JSON.stringify({ message: `스캔본 ${sha ? '교체' : '추가'}: ${title}`, content: toB64(sealed), ...(sha ? { sha } : {}) }) });
       if (!r.ok) throw new Error('upload');
-      entry.file = `data/${id}.bin`; entry.name = pdf.name;
+      entry.file = path; entry.name = pdf.name;
     }
-    list.push(entry); list.sort((a, b) => b.date.localeCompare(a.date));
+    if (!isEdit) list.push(entry);
+    list.sort((a, b) => b.date.localeCompare(a.date));
     msg.textContent = '책 목록을 저장하는 중…';
-    const r2 = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `책 추가: ${title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
+    const r2 = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `${isEdit ? '책 수정' : '책 추가'}: ${title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
     if (!r2.ok) throw new Error('save');
     try { await shareToken(); } catch {}
     books = list; render(); showAdd(false);
-    $('sub').textContent = `「${title}」을(를) 추가했어요. 다른 팀원 화면에는 1~2분 뒤에 보여요.`;
+    $('sub').textContent = `「${title}」을(를) ${isEdit ? '고쳤어요' : '추가했어요'}. 다른 팀원 화면에는 1~2분 뒤에 보여요.`;
   } catch (err) {
     msg.dataset.step = msg.textContent.replace(/[….\s]+$/, '');
     msg.className = 'msg err';
