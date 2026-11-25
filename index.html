@@ -436,6 +436,7 @@ function delCtl(b) {
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'link'; btn.textContent = '삭제';
   btn.onclick = () => {
     wrap.replaceChildren();
+    if (DEMO) { books = books.filter(x => x.id !== b.id); render(); $('sub').textContent = '미리보기라서 실제로 지워지지는 않아요.'; return; }
     if (!getTok()) { wrap.append('아직 처음 설정이 안 됐어요. 「+ 책 추가」에서 GitHub 토큰을 한 번 넣어 주세요. '); const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'link'; ok.textContent = '닫기'; ok.onclick = () => wrap.replaceChildren(btn); wrap.append(ok); return; }
     const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'danger'; yes.textContent = '지우기';
     const no = document.createElement('button'); no.type = 'button'; no.textContent = '취소';
