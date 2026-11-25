@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>연구산학팀 화요 독서노트</title>
+<title>화요책방</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f5a43'/%3E%3Cpath d='M16 18h14a4 4 0 0 1 4 4v26a3 3 0 0 0-3-3H16zM48 18H38a4 4 0 0 0-4 4v26a3 3 0 0 1 3-3h11z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600;700&family=Jua&family=Gowun+Dodum&family=Gaegu:wght@400;700&display=swap">
 <style>
 :root{
   --bg:#f3f5f2; --paper:#fff; --ink:#1d2a24; --muted:#5f6d66; --line:#d8e0da;
@@ -81,18 +81,45 @@ button.link{border:0;background:none;padding:0;color:var(--muted);text-decoratio
 .zoom{display:flex;gap:4px;align-items:center}
 .zoom span{font-size:13px;color:var(--muted);min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
 .vbar .zoom button{padding:6px 11px;font-size:16px;line-height:1}
+.demo-note{background:#fff7d6;color:#6b5300;border:1px solid #f0d77a;border-radius:8px;padding:8px 12px;font-size:13px}
+
+/* ===== 깔끔한 기본 디자인 (2026-11-26) ===== */
+:root{--bg:#f6f7f9;--paper:#fff;--ink:#1f2430;--muted:#6b7280;--line:#e5e7eb;--accent:#3b5a86;--accent-soft:#eef2f8;--mark:#fdf1b8;
+  --f-body:"Noto Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;--f-title:"Noto Sans KR",system-ui,"Malgun Gothic",sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#15181d;--paper:#1d2128;--ink:#e7e9ee;--muted:#9aa1ad;--line:#2d323b;--accent:#9db7dc;--accent-soft:#243042;--mark:#5a5020}}
+.wrap{gap:24px;padding-top:44px}
+header{border-bottom:1px solid var(--line);padding-bottom:18px}
+h1{font-size:28px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.sub{font-size:14px}
+button,input,select{border-radius:10px}
+.gate,.add{border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.sec{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.02em;margin:26px 0 10px}
+.year{font-size:13px;margin:14px 0 6px}
+.card{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:14px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card .title.big{font-size:21px;font-weight:700;color:var(--ink);text-decoration:none}
+.card .author{font-size:14px}
+.list{border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.list li{padding:14px 20px;grid-template-columns:110px 1fr}
+.list li:hover{background:var(--bg)}
+.date{color:var(--muted);font-weight:500}
+.title{font-size:16px;font-weight:700}
+button.title.has{color:var(--ink);text-decoration:none}
+button.title.has:hover{color:var(--accent);text-decoration:underline}
+.tag{background:var(--accent-soft);color:var(--accent);font-weight:500}
+@media (max-width:520px){.list li{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>연구산학팀 화요 독서노트</h1>
+    <h1>화요책방</h1>
     <p class="sub" id="sub">화요일 아침 회의에서 팀장님이 소개한 책들입니다.</p>
   </header>
 
   <section class="gate" id="gate">
     <h2>팀 비밀번호를 입력하세요</h2>
-    <p class="msg">연구산학팀만 볼 수 있어요. 한 번 입력하면 이 기기에서는 다시 묻지 않아요.</p>
+    <p class="msg">우리 팀만 볼 수 있어요. 한 번 입력하면 이 기기에서는 다시 묻지 않아요.</p>
     <form id="gateForm">
       <input id="pw" type="password" inputmode="text" autocomplete="current-password" placeholder="팀 비밀번호" aria-label="팀 비밀번호">
       <button class="primary" type="submit" id="gateBtn">열기</button>
@@ -126,7 +153,7 @@ button.link{border:0;background:none;padding:0;color:var(--muted);text-decoratio
     <div id="out" style="margin-top:16px"></div>
   </section>
 
-  <footer><span>삼육대학교 연구처 연구산학팀</span><button id="logout" type="button" hidden>이 기기에서 잠그기</button></footer>
+  <footer><span>화요책방 · 화요일 아침, 함께 읽은 책</span><button id="logout" type="button" hidden>이 기기에서 잠그기</button></footer>
 </div>
 
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true">
@@ -135,7 +162,14 @@ button.link{border:0;background:none;padding:0;color:var(--muted);text-decoratio
 </div>
 
 <script>
+const DEFAULT_LOOK = '';
 const $ = id => document.getElementById(id);
+// ---- 디자인 시안: ?look=d|e|f 로 바꿔 보기, ?demo=1 이면 예시 데이터로 미리보기(비밀번호·저장 없음) ----
+const params = new URLSearchParams(location.search);
+const LOOK = [].includes(params.get('look')) ? params.get('look') : DEFAULT_LOOK;
+if (LOOK) document.body.classList.add('look-' + LOOK);
+const DEMO = params.get('demo') === '1';
+
 const WD = ['일','월','화','수','목','금','토'];
 const fmt = s => { const d = new Date(s + 'T00:00:00'); return isNaN(d) ? s : `${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]})`; };
 const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
@@ -254,6 +288,7 @@ let pdfReady = null;
 const loadPdfJs = () => (pdfReady ||= loadScript(PDFJS + 'pdf.min.js').then(() => loadScript(PDFJS + 'pdf.worker.min.js')));
 let curPdf = null, curBook = null, renderToken = 0;
 async function openScan(b) {
+  if (DEMO) return;
   curBook = b; const tok = ++renderToken;
   $('vTitle').textContent = b.title; $('viewer').hidden = false; document.body.style.overflow = 'hidden';
   const box = $('pages'); box.replaceChildren(); const m = document.createElement('p'); m.className = 'msg'; m.textContent = '스캔본을 여는 중…'; box.append(m);
@@ -390,6 +425,21 @@ $('logout').onclick = () => { try { localStorage.removeItem(STORE); } catch {} l
 $('q').oninput = render; $('yr').onchange = render;
 
 (async () => {
+  if (DEMO) {
+    books = [
+      { id: 'd1', date: '2026-11-24', title: '한국은 자본주의 사회인가', author: '(예시)', file: 'demo' },
+      { id: 'd2', date: '2026-11-17', title: '말하지 않는 한국사', author: '최성락', file: 'demo' },
+      { id: 'd3', date: '2026-11-10', title: '예시 도서 가', author: '예시 저자', file: 'demo' },
+      { id: 'd4', date: '2026-11-03', title: '예시 도서 나', author: '예시 저자' },
+      { id: 'd5', date: '2026-10-27', title: '예시 도서 다', author: '예시 저자', file: 'demo' },
+      { id: 'd6', date: '2026-10-20', title: '예시 도서 라', author: '예시 저자', file: 'demo' }
+    ];
+    $('gate').hidden = true; $('main').hidden = false;
+    const note = document.createElement('div'); note.className = 'demo-note'; note.textContent = '미리보기 · 예시 데이터예요(실제 책 목록이 아니에요).';
+    $('main').prepend(note);
+    $('sub').textContent = '화요일 아침 회의에서 팀장님이 소개한 책들입니다. 지금까지 6권. 제목을 누르면 스캔본이 열려요.';
+    render(); return;
+  }
   try { meta = await (await fetch('data/meta.json', { cache: 'no-cache' })).json(); }
   catch { $('gateMsg').className = 'msg err'; $('gateMsg').textContent = '사이트 정보를 불러오지 못했어요. 새로고침해 주세요.'; return; }
   let saved = null; try { saved = localStorage.getItem(STORE); } catch {}
