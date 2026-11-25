@@ -242,7 +242,7 @@ body.ban .list li .cover > *{display:none}
 <div class="wrap">
   <header>
     <h1>화요책방</h1>
-    <p class="sub" id="sub">화요일 아침 회의에서 팀장님이 소개한 책들입니다.</p>
+    <p class="sub" id="sub">화요일 아침 회의에서 소개한 책들입니다.</p>
   </header>
 
   <section class="gate" id="gate">
@@ -321,7 +321,7 @@ async function unlock(k) {
   books = JSON.parse(new TextDecoder().decode(await open(k, await getBin('data/books.bin'))));
   books.sort((a, b) => b.date.localeCompare(a.date));
   $('gate').hidden = true; $('main').hidden = false; $('logout').hidden = false;
-  $('sub').textContent = `화요일 아침 회의에서 팀장님이 소개한 책들입니다. 지금까지 ${books.length}권. 제목을 누르면 스캔본이 열려요.`;
+  $('sub').textContent = `화요일 아침 회의에서 소개한 책들입니다. 지금까지 ${books.length}권. 제목을 누르면 스캔본이 열려요.`;
   $('yr').length = 1;
   for (const y of [...new Set(books.map(b => b.date.slice(0, 4)))]) { const o = document.createElement('option'); o.value = y; o.textContent = `${y}년`; $('yr').append(o); }
   render();
@@ -658,7 +658,7 @@ $('q').oninput = render; $('yr').onchange = render;
     $('gate').hidden = true; $('main').hidden = false;
     const note = document.createElement('div'); note.className = 'demo-note'; note.textContent = '미리보기 · 예시 데이터예요(실제 책 목록이 아니에요).';
     $('main').prepend(note);
-    $('sub').textContent = '화요일 아침 회의에서 팀장님이 소개한 책들입니다. 지금까지 6권. 제목을 누르면 스캔본이 열려요.';
+    $('sub').textContent = '화요일 아침 회의에서 소개한 책들입니다. 지금까지 6권. 제목을 누르면 스캔본이 열려요.';
     render(); return;
   }
   try { meta = await (await fetch('data/meta.json', { cache: 'no-cache' })).json(); }
