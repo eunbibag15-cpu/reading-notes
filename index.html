@@ -235,8 +235,8 @@ function delCtl(b) {
 }
 async function removeBook(b) {
   const cur = await (await gh('data/books.bin')).json();
-  const raw = await (await fetch(GH + 'data/books.bin', { headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github.raw' } })).arrayBuffer();
-  const list = JSON.parse(new TextDecoder().decode(await open(key, new Uint8Array(raw)))).filter(x => x.id !== b.id);
+  const raw = await blobBytes(cur.sha);
+  const list = JSON.parse(new TextDecoder().decode(await open(key, raw))).filter(x => x.id !== b.id);
   const r = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `책 삭제: ${b.title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
   if (!r.ok) throw new Error('save');
   if (b.file) {
@@ -299,7 +299,7 @@ async function shareToken() {
   if (sharedTok || !getTok()) return;
   const r = await gh('data/meta.json'); if (!r.ok) return;
   const cur = await r.json();
-  const m = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(cur.content.replace(/\n/g, '')), c => c.charCodeAt(0))));
+  const m = JSON.parse(new TextDecoder().decode(await blobBytes(cur.sha)));
   m.tok = toB64(await seal(new TextEncoder().encode(getTok())));
   const p = await gh('data/meta.json', { method: 'PUT', body: JSON.stringify({ message: '팀 공용 토큰 저장(암호화)', content: btoa(JSON.stringify(m)), sha: cur.sha }) });
   if (p.ok) { sharedTok = getTok(); meta.tok = m.tok; try { localStorage.removeItem(TOK); } catch {} }
@@ -310,10 +310,17 @@ async function seal(bytes) {
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes));
   const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
 }
+// 저장소 파일의 정확한 바이트(contents API의 content는 바이너리를 바꿔 보낼 때가 있어 git blob으로 받음)
+async function blobBytes(sha) {
+  const r = await fetch('https://api.github.com/repos/' + REPO + '/git/blobs/' + sha, { headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github+json' } });
+  if (r.status === 401 || r.status === 403) throw new Error('token');
+  if (!r.ok) throw new Error('GitHub ' + r.status);
+  return unb64((await r.json()).content.replace(/\s/g, ''));
+}
 async function gh(path, opts = {}) {
   const r = await fetch(GH + path, { ...opts, headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github+json', ...(opts.headers || {}) } });
   if (r.status === 401 || r.status === 403) throw new Error('token');
-  if (!r.ok && r.status !== 404) throw new Error('gh ' + r.status);
+  if (!r.ok && r.status !== 404) { let t = ''; try { t = (await r.clone().json()).message || ''; } catch {} throw new Error(`GitHub ${r.status} ${t}`.trim()); }
   return r;
 }
 const lastTuesday = () => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() - 2 + 7) % 7)); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -340,8 +347,8 @@ $('addForm').onsubmit = async e => {
   try {
     msg.textContent = '최신 책 목록을 확인하는 중…';
     const cur = await (await gh('data/books.bin')).json();
-    const raw = await (await fetch(GH + 'data/books.bin', { headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github.raw' } })).arrayBuffer();
-    const list = JSON.parse(new TextDecoder().decode(await open(key, new Uint8Array(raw))));
+    const raw = await blobBytes(cur.sha);
+    const list = JSON.parse(new TextDecoder().decode(await open(key, raw)));
     const id = `${date}-${[...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('')}`;
     const entry = { id, date, title, author };
     if (pdf) {
@@ -359,9 +366,10 @@ $('addForm').onsubmit = async e => {
     books = list; render(); showAdd(false);
     $('sub').textContent = `「${title}」을(를) 추가했어요. 다른 팀원 화면에는 1~2분 뒤에 보여요.`;
   } catch (err) {
+    msg.dataset.step = msg.textContent.replace(/[….\s]+$/, '');
     msg.className = 'msg err';
     if (err.message === 'token') { sharedTok = ''; try { localStorage.removeItem(TOK); } catch {} $('tokBox').hidden = false; msg.textContent = 'GitHub 토큰이 맞지 않거나 권한이 없어요. 토큰을 다시 넣어 주세요(Contents: Read and write).'; }
-    else msg.textContent = '올리지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.';
+    else { msg.textContent = `올리지 못했어요. 이 문구를 캡처해서 알려 주세요 → [${msg.dataset.step || ''}] ${err && err.message || err}`; console.error(err); }
   } finally { $('addSave').disabled = false; }
 };
 
