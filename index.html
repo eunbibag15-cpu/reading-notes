@@ -370,6 +370,7 @@ $('copyUrl').onclick = async () => {
 let installEvt = null;
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 if (standalone()) $('installBtn').hidden = true;
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
 addEventListener('appinstalled', () => { $('installBtn').hidden = true; $('howto').hidden = true; });
 $('installBtn').onclick = async () => {
@@ -383,7 +384,7 @@ $('installBtn').onclick = async () => {
   else if (ios) steps = ['<b>사파리</b>에서 열어 주세요(다른 앱 안이면 사파리로 열기).', '아래쪽 <b>공유 버튼</b>(네모에 위쪽 화살표)을 누르세요.', '<b>홈 화면에 추가</b> → 오른쪽 위 <b>추가</b>를 누르면 끝!'];
   else if (samsung) steps = ['아래쪽 <b>≡</b> 메뉴를 누르세요.', '<b>현재 페이지 추가</b> → <b>홈 화면</b>을 고르면 끝!'];
   else if (android) steps = ['오른쪽 위 <b>⋮</b> 메뉴를 누르세요.', '<b>홈 화면에 추가</b>(또는 <b>앱 설치</b>) → <b>설치/추가</b>를 누르면 끝!'];
-  else steps = ['<b>크롬·엣지</b>: 주소창 오른쪽 끝의 <b>설치 아이콘</b>(모니터에 화살표)을 누르거나,', '오른쪽 위 <b>⋮ / …</b> 메뉴 → <b>앱</b> → <b>이 사이트를 앱으로 설치</b>(또는 「화요책방 설치」)를 누르세요.', '설치하면 바탕화면·시작 메뉴에 화요책방 아이콘이 생겨요.'];
+  else steps = ['이미 이 컴퓨터에 설치했다면 설치 창이 다시 뜨지 않아요. <b>바탕화면이나 시작 메뉴</b>에서 「화요책방」을 찾아 열어 보세요.', '<b>크롬·엣지</b>: 주소창 오른쪽 끝의 <b>설치 아이콘</b>(모니터에 화살표)을 누르거나,', '오른쪽 위 <b>⋮ / …</b> 메뉴 → <b>앱</b> → <b>이 사이트를 앱으로 설치</b>(또는 「화요책방 설치」)를 누르세요.', '설치하면 바탕화면·시작 메뉴에 화요책방 아이콘이 생겨요.'];
   box.innerHTML = '<b class="h">바로가기 만드는 방법</b><ol>' + steps.map(s => '<li>' + s + '</li>').join('') + '</ol><p class="msg">처음 열 때 팀 비밀번호를 한 번 더 물어볼 수 있어요.</p><button type="button" class="mini" id="howtoClose">닫기</button>';
   box.hidden = false; $('howtoClose').onclick = () => { box.hidden = true; };
 };
