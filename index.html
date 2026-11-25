@@ -54,9 +54,33 @@ footer button{font-size:12px;padding:0;border:0;background:none;color:var(--mute
 .vbar{display:flex;gap:10px;align-items:center;padding:calc(env(safe-area-inset-top) + 10px) max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:var(--paper)}
 .vbar b{flex:1;min-width:0;font-family:var(--f-title);font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vbar button{padding:7px 12px;font-size:14px}
-.pages{flex:1;overflow:auto;padding:16px max(10px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 30px) max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;align-items:center;gap:14px}
-.pages canvas{width:100%;max-width:820px;height:auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);border-radius:2px}
-.pages .msg{margin-top:30px}
+.pages{flex:1;overflow:auto;padding:16px max(10px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 30px) max(10px,env(safe-area-inset-left))}
+.pages canvas{display:block;margin:0 auto 14px;width:calc(100% * var(--z,1));max-width:calc(900px * var(--z,1));height:auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);border-radius:2px}
+.pages .msg{margin-top:30px;text-align:center}
+.sec{font-size:15px;margin:18px 0 8px;color:var(--ink)}
+.sec:first-child{margin-top:0}
+.now{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card .title.big{font-size:22px}
+.card .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.del{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:10px;font-size:13px;color:var(--danger)}
+.del button{padding:4px 10px;font-size:13px}
+.del button.link{padding:0}
+button.danger{color:var(--danger);border-color:var(--danger)}
+.add{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.add h2{margin:0;font-size:16px}
+.add label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:500;min-width:0}
+.add label small{font-weight:400}
+.add input{width:100%}
+.add .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.add a{color:var(--accent)}
+.grid3{display:grid;grid-template-columns:150px 1fr 1fr;gap:10px}
+@media (max-width:560px){.grid3{grid-template-columns:1fr}}
+.tok{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+button.link{border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;font-size:13px}
+.zoom{display:flex;gap:4px;align-items:center}
+.zoom span{font-size:13px;color:var(--muted);min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+.vbar .zoom button{padding:6px 11px;font-size:16px;line-height:1}
 </style>
 </head>
 <body>
@@ -80,7 +104,25 @@ footer button{font-size:12px;padding:0;border:0;background:none;color:var(--mute
     <div class="tools">
       <input id="q" type="search" placeholder="책 제목이나 저자로 찾기" aria-label="검색">
       <select id="yr" aria-label="연도"><option value="">전체 연도</option></select>
+      <button class="primary" id="addBtn" type="button">+ 책 추가</button>
     </div>
+
+    <form class="add" id="addForm" hidden>
+      <h2>이번 주 책 추가</h2>
+      <div class="grid3">
+        <label>회의 날짜<input id="aDate" type="date" required></label>
+        <label>책 제목<input id="aTitle" required placeholder="책 제목"></label>
+        <label>저자<input id="aAuthor" placeholder="저자"></label>
+      </div>
+      <label>스캔본 PDF<input id="aPdf" type="file" accept="application/pdf,.pdf"></label>
+      <div id="tokBox" class="tok" hidden>
+        <label>GitHub 토큰 <small>(책을 올리는 사람만, 이 기기에서 처음 한 번)</small><input id="aTok" type="password" autocomplete="off" placeholder="github_pat_로 시작하는 값"></label>
+        <p class="msg">토큰 만들기: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 토큰 만들기 페이지</a>에서 Repository access를 「Only select repositories → reading-notes」, Permissions의 Contents를 「Read and write」로 정해 만드세요. 토큰은 이 기기에만 저장돼요.</p>
+      </div>
+      <p class="msg" id="addMsg"></p>
+      <div class="row"><button type="button" class="link" id="tokReset" hidden>토큰 다시 넣기</button><span style="flex:1"></span><button type="button" id="addCancel">취소</button><button class="primary" type="submit" id="addSave">올리기</button></div>
+    </form>
+
     <div id="out" style="margin-top:16px"></div>
   </section>
 
@@ -88,7 +130,7 @@ footer button{font-size:12px;padding:0;border:0;background:none;color:var(--mute
 </div>
 
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true">
-  <div class="vbar"><b id="vTitle"></b><button id="vSave" type="button">내려받기</button><button id="vClose" type="button" class="primary">닫기</button></div>
+  <div class="vbar"><b id="vTitle"></b><span class="zoom"><button id="zOut" type="button" aria-label="축소">−</button><span id="zVal">100%</span><button id="zIn" type="button" aria-label="확대">+</button></span><button id="vSave" type="button">내려받기</button><button id="vClose" type="button" class="primary">닫기</button></div>
   <div class="pages" id="pages"></div>
 </div>
 
@@ -105,7 +147,7 @@ const getBin = async p => { const r = await fetch(p, { cache: 'no-cache' }); if 
 const open = async (k, blob) => new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: blob.slice(0, 12) }, k, blob.slice(12)));
 async function derive(pw) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: unb64(meta.salt), iterations: meta.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['decrypt']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: unb64(meta.salt), iterations: meta.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
 }
 async function unlock(k) {
   await open(k, unb64(meta.check));  // 비밀번호가 틀리면 여기서 실패
@@ -130,9 +172,21 @@ function render() {
   const q = $('q').value.trim().toLowerCase(), yr = $('yr').value;
   const shown = books.filter(b => (!yr || b.date.startsWith(yr)) && (!q || `${b.title} ${b.author || ''}`.toLowerCase().includes(q)));
   const out = $('out'); out.replaceChildren();
-  if (!shown.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = books.length ? '찾는 책이 없어요.' : '아직 등록된 책이 없어요.'; out.append(e); return; }
+  if (!shown.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = books.length ? '찾는 책이 없어요.' : '아직 등록된 책이 없어요. 「+ 책 추가」로 첫 책을 올려 보세요.'; out.append(e); return; }
+  // 검색 중이 아니면 가장 최근 회의 날짜의 책을 「이번 주 소개한 책」으로 따로 보여 줌
+  let rest = shown;
+  if (!q && !yr) {
+    const latest = books[0].date;
+    const now = shown.filter(b => b.date === latest);
+    rest = shown.filter(b => b.date !== latest);
+    const h = document.createElement('h2'); h.className = 'sec'; h.textContent = `이번 주 소개한 책 · ${fmt(latest)}`; out.append(h);
+    const box = document.createElement('div'); box.className = 'now';
+    for (const b of now) box.append(nowCard(b));
+    out.append(box);
+    if (rest.length) { const h2 = document.createElement('h2'); h2.className = 'sec'; h2.textContent = `이전에 소개한 책 (${rest.length}권)`; out.append(h2); }
+  }
   let cur = null, ul = null;
-  for (const b of shown) {
+  for (const b of rest) {
     const y = b.date.slice(0, 4);
     if (y !== cur) { cur = y; const h = document.createElement('div'); h.className = 'year'; h.textContent = `${y}년`; out.append(h); ul = document.createElement('ul'); ul.className = 'list'; out.append(ul); }
     const li = document.createElement('li');
@@ -143,8 +197,53 @@ function render() {
     body.append(t);
     if (b.author) { const a = document.createElement('span'); a.className = 'author'; a.append(hl(b.author, q)); body.append(a); }
     if (b.file) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = '스캔본'; body.append(tg); }
+    body.append(delCtl(b));
     li.append(d, body); ul.append(li);
   }
+}
+function nowCard(b) {
+  const c = document.createElement('div'); c.className = 'card';
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'title big' + (b.file ? ' has' : ''); t.textContent = b.title;
+  if (b.file) t.onclick = () => openScan(b); else t.disabled = true;
+  c.append(t);
+  if (b.author) { const a = document.createElement('div'); a.className = 'author'; a.style.margin = '0'; a.textContent = b.author; c.append(a); }
+  const row = document.createElement('div'); row.className = 'row';
+  if (b.file) { const v = document.createElement('button'); v.type = 'button'; v.className = 'primary'; v.textContent = '스캔본 보기'; v.onclick = () => openScan(b); row.append(v); }
+  row.append(delCtl(b)); c.append(row);
+  return c;
+}
+// 삭제: 한 번 더 확인한 뒤 GitHub에서 책 목록과 스캔본을 지움(토큰 필요)
+function delCtl(b) {
+  const wrap = document.createElement('span'); wrap.className = 'del';
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'link'; btn.textContent = '삭제';
+  btn.onclick = () => {
+    wrap.replaceChildren();
+    if (!getTok()) { wrap.append('삭제하려면 먼저 「+ 책 추가」에서 GitHub 토큰을 넣어 주세요. '); const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'link'; ok.textContent = '닫기'; ok.onclick = () => wrap.replaceChildren(btn); wrap.append(ok); return; }
+    const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'danger'; yes.textContent = '지우기';
+    const no = document.createElement('button'); no.type = 'button'; no.textContent = '취소';
+    const m = document.createElement('span'); m.textContent = '이 책과 스캔본을 지울까요? ';
+    no.onclick = () => wrap.replaceChildren(btn);
+    yes.onclick = async () => {
+      yes.disabled = no.disabled = true; m.textContent = '지우는 중… ';
+      try { await removeBook(b); }
+      catch (err) { m.textContent = err.message === 'token' ? '토큰이 맞지 않아요. 「+ 책 추가」에서 다시 넣어 주세요. ' : '지우지 못했어요. 다시 해 보세요. '; yes.disabled = no.disabled = false; }
+    };
+    wrap.append(m, yes, no);
+  };
+  wrap.append(btn); return wrap;
+}
+async function removeBook(b) {
+  const cur = await (await gh('data/books.bin')).json();
+  const raw = await (await fetch(GH + 'data/books.bin', { headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github.raw' } })).arrayBuffer();
+  const list = JSON.parse(new TextDecoder().decode(await open(key, new Uint8Array(raw)))).filter(x => x.id !== b.id);
+  const r = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `책 삭제: ${b.title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
+  if (!r.ok) throw new Error('save');
+  if (b.file) {
+    const f = await gh(b.file);
+    if (f.ok) { const { sha } = await f.json(); await gh(b.file, { method: 'DELETE', body: JSON.stringify({ message: `스캔본 삭제: ${b.title}`, sha }) }); }
+  }
+  books = list.sort((a, c) => c.date.localeCompare(a.date)); render();
+  $('sub').textContent = `「${b.title}」을(를) 지웠어요. 다른 팀원 화면에는 1~2분 뒤에 반영돼요.`;
 }
 
 // ---- 스캔본 보기 (pdf.js) ----
@@ -164,11 +263,12 @@ async function openScan(b) {
     curPdf = bytes; $('vSave').disabled = false;
     const pdf = await window.pdfjsLib.getDocument({ data: bytes.slice() }).promise;
     m.remove();
-    const w = Math.min(820, box.clientWidth - 20) * Math.min(2, window.devicePixelRatio || 1);
+    // 원본 스캔 해상도에 가깝게 그림(흐림 방지). 가로 최소 1400px, 최대 2200px
+    const want = Math.max(1400, Math.min(2200, (box.clientWidth || 900) * (window.devicePixelRatio || 1) * 2));
     for (let i = 1; i <= pdf.numPages; i++) {
       if (tok !== renderToken) return;
       const page = await pdf.getPage(i);
-      const vp = page.getViewport({ scale: w / page.getViewport({ scale: 1 }).width });
+      const vp = page.getViewport({ scale: want / page.getViewport({ scale: 1 }).width });
       const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height); c.setAttribute('aria-label', `${i}쪽`);
       box.append(c);
       await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
@@ -177,12 +277,79 @@ async function openScan(b) {
 }
 function closeScan() { renderToken++; $('viewer').hidden = true; $('pages').replaceChildren(); curPdf = null; document.body.style.overflow = ''; }
 $('vClose').onclick = closeScan;
+const ZOOMS = [1, 1.5, 2, 2.5, 3]; let zi = 0;
+function setZoom(i) { zi = Math.max(0, Math.min(ZOOMS.length - 1, i)); $('pages').style.setProperty('--z', ZOOMS[zi]); $('zVal').textContent = Math.round(ZOOMS[zi] * 100) + '%'; $('zOut').disabled = zi === 0; $('zIn').disabled = zi === ZOOMS.length - 1; }
+$('zIn').onclick = () => setZoom(zi + 1); $('zOut').onclick = () => setZoom(zi - 1); setZoom(0);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('viewer').hidden) closeScan(); });
 $('vSave').onclick = () => {
   if (!curPdf) return;
   const url = URL.createObjectURL(new Blob([curPdf], { type: 'application/pdf' }));
   const a = document.createElement('a'); a.href = url; a.download = curBook.name || `${curBook.title}.pdf`; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+};
+
+// ---- 책 추가 (브라우저에서 암호화 → GitHub API로 저장소에 올림) ----
+const REPO = 'eunbibag15-cpu/reading-notes', GH = 'https://api.github.com/repos/' + REPO + '/contents/';
+const TOK = 'reading-notes-gh';
+const getTok = () => { try { return localStorage.getItem(TOK) || ''; } catch { return ''; } };
+const toB64 = u => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+async function seal(bytes) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
+}
+async function gh(path, opts = {}) {
+  const r = await fetch(GH + path, { ...opts, headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github+json', ...(opts.headers || {}) } });
+  if (r.status === 401 || r.status === 403) throw new Error('token');
+  if (!r.ok && r.status !== 404) throw new Error('gh ' + r.status);
+  return r;
+}
+const lastTuesday = () => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() - 2 + 7) % 7)); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+function showAdd(on) {
+  $('addForm').hidden = !on; $('addBtn').hidden = on;
+  if (!on) return;
+  $('aDate').value = lastTuesday(); $('aTitle').value = ''; $('aAuthor').value = ''; $('aPdf').value = ''; $('aTok').value = '';
+  $('tokBox').hidden = !!getTok(); $('tokReset').hidden = !getTok(); $('addMsg').className = 'msg'; $('addMsg').textContent = ''; $('aTitle').focus();
+}
+$('addBtn').onclick = () => showAdd(true);
+$('addCancel').onclick = () => showAdd(false);
+$('tokReset').onclick = () => { try { localStorage.removeItem(TOK); } catch {} $('tokBox').hidden = false; $('tokReset').hidden = true; $('aTok').focus(); };
+$('addForm').onsubmit = async e => {
+  e.preventDefault();
+  const msg = $('addMsg'); msg.className = 'msg';
+  const title = $('aTitle').value.trim(), date = $('aDate').value, author = $('aAuthor').value.trim(), pdf = $('aPdf').files[0];
+  if (!title || !date) { msg.className = 'msg err'; msg.textContent = '날짜와 책 제목을 적어 주세요.'; return; }
+  if (!getTok()) {
+    const t = $('aTok').value.trim();
+    if (!t) { msg.className = 'msg err'; msg.textContent = 'GitHub 토큰을 넣어 주세요.'; $('aTok').focus(); return; }
+    try { localStorage.setItem(TOK, t); } catch {}
+  }
+  $('addSave').disabled = true;
+  try {
+    msg.textContent = '최신 책 목록을 확인하는 중…';
+    const cur = await (await gh('data/books.bin')).json();
+    const raw = await (await fetch(GH + 'data/books.bin', { headers: { Authorization: 'Bearer ' + getTok(), Accept: 'application/vnd.github.raw' } })).arrayBuffer();
+    const list = JSON.parse(new TextDecoder().decode(await open(key, new Uint8Array(raw))));
+    const id = `${date}-${[...crypto.getRandomValues(new Uint8Array(3))].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+    const entry = { id, date, title, author };
+    if (pdf) {
+      msg.textContent = '스캔본을 암호화해서 올리는 중… (몇 초 걸려요)';
+      const sealed = await seal(new Uint8Array(await pdf.arrayBuffer()));
+      const r = await gh(`data/${id}.bin`, { method: 'PUT', body: JSON.stringify({ message: `스캔본 추가: ${title}`, content: toB64(sealed) }) });
+      if (!r.ok) throw new Error('upload');
+      entry.file = `data/${id}.bin`; entry.name = pdf.name;
+    }
+    list.push(entry); list.sort((a, b) => b.date.localeCompare(a.date));
+    msg.textContent = '책 목록을 저장하는 중…';
+    const r2 = await gh('data/books.bin', { method: 'PUT', body: JSON.stringify({ message: `책 추가: ${title}`, content: toB64(await seal(new TextEncoder().encode(JSON.stringify(list)))), sha: cur.sha }) });
+    if (!r2.ok) throw new Error('save');
+    books = list; render(); showAdd(false);
+    $('sub').textContent = `「${title}」을(를) 추가했어요. 다른 팀원 화면에는 1~2분 뒤에 보여요.`;
+  } catch (err) {
+    msg.className = 'msg err';
+    if (err.message === 'token') { try { localStorage.removeItem(TOK); } catch {} $('tokBox').hidden = false; msg.textContent = 'GitHub 토큰이 맞지 않거나 권한이 없어요. 토큰을 다시 넣어 주세요(Contents: Read and write).'; }
+    else msg.textContent = '올리지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.';
+  } finally { $('addSave').disabled = false; }
 };
 
 // ---- 시작 ----
@@ -206,7 +373,7 @@ $('q').oninput = render; $('yr').onchange = render;
   catch { $('gateMsg').className = 'msg err'; $('gateMsg').textContent = '사이트 정보를 불러오지 못했어요. 새로고침해 주세요.'; return; }
   let saved = null; try { saved = localStorage.getItem(STORE); } catch {}
   if (saved) {
-    try { await unlock(await crypto.subtle.importKey('raw', unb64(saved), 'AES-GCM', true, ['decrypt'])); return; }
+    try { await unlock(await crypto.subtle.importKey('raw', unb64(saved), 'AES-GCM', true, ['encrypt', 'decrypt'])); return; }
     catch { try { localStorage.removeItem(STORE); } catch {} }
   }
   $('pw').focus();
