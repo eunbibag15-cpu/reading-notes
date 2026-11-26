@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="화요책방">
 <meta property="og:title" content="화요책방 📚 화요일 아침, 함께 공유한 책">
 <meta property="og:description" content="이번 주 소개한 책과 챕터 스캔본을 볼 수 있어요 · 연구처 · 산학협력단">
-<meta property="og:url" content="https://eunbibag15-cpu.github.io/reading-notes/">
+<meta property="og:url" content="https://eunbibag15-cpu.github.io/reading-notes/?v=2">
 <meta property="og:image" content="https://eunbibag15-cpu.github.io/reading-notes/icons/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -294,7 +294,7 @@ button.mini.install{display:inline-flex;align-items:center;gap:5px;background:va
     <h1>화요책방</h1>
     <p class="sub" id="sub">화요일 아침 회의에서 소개한 책들입니다.</p>
     <div class="share">
-      <a class="url" id="siteUrl" href="https://eunbibag15-cpu.github.io/reading-notes/">eunbibag15-cpu.github.io/reading-notes</a>
+      <a class="url" id="siteUrl" href="https://eunbibag15-cpu.github.io/reading-notes/?v=2">eunbibag15-cpu.github.io/reading-notes</a>
       <button type="button" class="mini" id="copyUrl">주소 복사</button>
       <button type="button" class="mini install" id="installBtn"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>바로가기 설치</button>
     </div>
@@ -362,7 +362,7 @@ if (['a1','a2','a3'].includes(LOOK)) document.body.classList.add('ban');
 const DEMO = params.get('demo') === '1';
 
 // ---- 주소 복사 · 바로가기 설치(휴대폰 홈 화면 / 컴퓨터 앱) ----
-const SITE_URL = 'https://eunbibag15-cpu.github.io/reading-notes/';
+const SITE_URL = 'https://eunbibag15-cpu.github.io/reading-notes/?v=2';
 $('copyUrl').onclick = async () => {
   try { await navigator.clipboard.writeText(SITE_URL); } catch { const t = document.createElement('textarea'); t.value = SITE_URL; document.body.append(t); t.select(); try { document.execCommand('copy'); } catch {} t.remove(); }
   $('copyUrl').textContent = '복사했어요 ✓'; setTimeout(() => { $('copyUrl').textContent = '주소 복사'; }, 1800);
